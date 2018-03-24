@@ -1,0 +1,28 @@
+{
+  "name": "vdomts",
+  "version": "0.0.1",
+  "description": "very simple TypeScript virtual DOM implementation.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/outlandkarasu/vdomts.git"
+  },
+  "keywords": [
+    "virtual-dom"
+  ],
+  "author": "outland.karasu@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/outlandkarasu/vdomts/issues"
+  },
+  "homepage": "https://github.com/outlandkarasu/vdomts#readme",
+  "devDependencies": {
+    "typescript": "2.7.2"
+  }
+}
