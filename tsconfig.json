@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "commonjs",
+        "lib": ["es5", "es6", "dom"],
+        "module": "AMD",
         "declaration": true,
         "rootDirs": ["./src"],
         "outDir": "./dist",
+        "outFile": "./dist/index.js",
         "strict": true,
         "noImplicitAny": true,
         "alwaysStrict": true,
