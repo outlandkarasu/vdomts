@@ -8,7 +8,7 @@
     "prepublish": "npm run build",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "karma"
+    "test": "karma start"
   },
   "repository": {
     "type": "git",
@@ -24,15 +24,15 @@
   },
   "homepage": "https://github.com/outlandkarasu/vdomts#readme",
   "devDependencies": {
-    "@types/chai": "^4.1.2",
-    "@types/karma": "^1.7.3",
-    "@types/mocha": "^5.0.0",
-    "chai": "^4.1.2",
-    "karma": "^2.0.0",
-    "karma-mocha": "^1.3.0",
-    "mocha": "^5.0.5",
-    "ts-loader": "^4.1.0",
-    "ts-node": "^5.0.1",
+    "@types/chai": "4.1.2",
+    "@types/karma": "1.7.3",
+    "@types/mocha": "5.0.0",
+    "chai": "4.1.2",
+    "karma": "2.0.0",
+    "karma-mocha": "1.3.0",
+    "karma-typescript": "3.0.12",
+    "mocha": "5.0.5",
+    "ts-node": "5.0.1",
     "typescript": "2.7.2"
   },
   "dependencies": {}

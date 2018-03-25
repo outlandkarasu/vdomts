@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es5",
         "lib": ["es5", "es6", "dom"],
-        "module": "AMD",
+        "module": "commonJS",
         "declaration": true,
         "rootDirs": ["./src"],
         "outDir": "./dist",
