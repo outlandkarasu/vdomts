@@ -2,8 +2,8 @@
   "name": "vdomts",
   "version": "0.0.1",
   "description": "very simple TypeScript virtual DOM implementation.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/vdom.js",
+  "types": "./dist/vdom.d.ts",
   "scripts": {
     "prepublish": "npm run build",
     "build": "tsc",
