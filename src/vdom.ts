@@ -7,6 +7,9 @@ import {EventListenerSet} from "./eventListenerSet";
 /// node attributes type.
 type Attributes = { [key:string]: string };
 
+/// node classList type.
+type Classes = { [key:string]: boolean };
+
 /// node builder type.
 export interface NodeBuilder {
     /**
@@ -26,6 +29,14 @@ export interface NodeBuilder {
      *  @return node builder.
      */
     attr(name: string, value: string): NodeBuilder;
+
+    /**
+     *  add an CSS style class.
+     *
+     *  @param name class name.
+     *  @return node builder.
+     */
+    cls(name: string): NodeBuilder;
 
     /**
      *  add an text node.
@@ -63,6 +74,7 @@ class NodeBuilderImpl implements NodeBuilder {
     private parent: Node;
     private node: Node | null;
     private attributes: Attributes | null;
+    private classes : Classes | null;
     private eventListenerSet: EventListenerSet | null;
 
     /**
@@ -72,6 +84,7 @@ class NodeBuilderImpl implements NodeBuilder {
         this.parent = root;
         this.node = root.firstChild;
         this.attributes = null;
+        this.classes = null;
         this.eventListenerSet = null;
     }
 
@@ -119,21 +132,39 @@ class NodeBuilderImpl implements NodeBuilder {
             return;
         }
 
-        const element: Element = (<Element>this.node);
+        const element = (<Element>this.node);
 
         // update exists attributes.
-        if(this.attributes) {
-            for(let key of Object.keys(this.attributes)) {
-                element.setAttribute(key, this.attributes[key]);
+        const newAttrsSet = this.attributes;
+        if(newAttrsSet) {
+            for(let key of Object.keys(newAttrsSet)) {
+                element.setAttribute(key, newAttrsSet[key]);
             }
         }
 
         // remove rest attributes.
-        const attrs: NamedNodeMap = element.attributes;
-        for(let i: number = 0; i < attrs.length;) {
+        const attrs = element.attributes;
+        for(let i = 0; i < attrs.length;) {
             const key = attrs[i].name;
-            if(!this.attributes || !this.attributes.hasOwnProperty(key)) {
+            if(!newAttrsSet || !newAttrsSet.hasOwnProperty(key)) {
                 element.removeAttribute(key);
+            } else {
+                ++i;
+            }
+        }
+
+        // update exists classes
+        const classList = element.classList;
+        const newClassList = this.classes;
+        if(newClassList) {
+            classList.add(...Object.keys(newClassList));
+        }
+
+        // remove rest classes.
+        for(let i = 0; i < classList.length;) {
+            const name = classList[i];
+            if(!newClassList || !newClassList.hasOwnProperty(name)) {
+                classList.remove(name);
             } else {
                 ++i;
             }
@@ -158,6 +189,7 @@ class NodeBuilderImpl implements NodeBuilder {
         const currentParent = this.parent;
         const currentElement = this.node;
         const currentAttributes = this.attributes;
+        const currentClasses = this.classes;
         const currentEventListenerSet = this.eventListenerSet;
         this.parent = this.node;
         this.node = this.parent.firstChild;
@@ -175,6 +207,7 @@ class NodeBuilderImpl implements NodeBuilder {
         // apply attributes from recursive call.
         this.updateAttributes();
         this.attributes = currentAttributes;
+        this.classes = currentClasses;
 
         // move to next element.
         if(this.node) {
@@ -189,6 +222,14 @@ class NodeBuilderImpl implements NodeBuilder {
             this.attributes = (<Attributes>{});
         }
         this.attributes[name] = value;
+        return this;
+    }
+
+    cls(name: string): NodeBuilder {
+        if(!this.classes) {
+            this.classes = (<Classes>{});
+        }
+        this.classes[name] = true;
         return this;
     }
 

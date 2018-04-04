@@ -216,5 +216,20 @@ describe("vdom", () => {
         assert.equal(root.childNodes[1].nodeType, Node.TEXT_NODE);
         assert.equal(root.childNodes[1].textContent, "test");
     });
+
+    it("add style class", () => {
+        const root: HTMLElement = document.createElement("section");
+        vdom.build(root, (b) => {
+            b.tag("div", () => {
+                b.cls("test-class");
+            });
+        });
+
+        assert.equal(root.childNodes.length, 1);
+        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
+        const element = (<Element>root.childNodes[0]);
+        assert.equal(element.tagName, "DIV");
+        assert.equal(element.classList.length, 1);
+    });
 });
 
