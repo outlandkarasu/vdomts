@@ -1,10 +1,11 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "es5",
         "lib": ["es5", "es6", "dom"],
         "module": "commonJS",
         "declaration": true,
-        "rootDirs": ["./src"],
+        "rootDirs": ["src"],
         "outDir": "./dist",
         "strict": true,
         "noImplicitAny": true,
@@ -13,7 +14,7 @@
         "preserveConstEnums": true,
         "sourceMap": true
     },
-    "include": ["./src/**/*.ts"],
-    "exclude": ["node_modules", "./src/test/**/*.ts"]
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"]
 }
 
