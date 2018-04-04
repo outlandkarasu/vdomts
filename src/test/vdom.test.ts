@@ -216,5 +216,64 @@ describe("vdom", () => {
         assert.equal(root.childNodes[1].nodeType, Node.TEXT_NODE);
         assert.equal(root.childNodes[1].textContent, "test");
     });
+
+    it("add style class", () => {
+        const root: HTMLElement = document.createElement("section");
+        vdom.build(root, (b) => {
+            b.tag("div", () => {
+                b.cls("test-class");
+            });
+        });
+
+        assert.equal(root.childNodes.length, 1);
+        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
+        const element = (<Element>root.childNodes[0]);
+        assert.equal(element.tagName, "DIV");
+        assert.equal(element.classList.length, 1);
+        assert.equal(element.classList[0], "test-class");
+    });
+
+    it("remove style class", () => {
+        const root: HTMLElement = document.createElement("section");
+        const classes: string[]  = ["test1", "test2"];
+        const build = () => {
+            vdom.build(root, (b) => {
+                b.tag("div", () => {
+                    classes.forEach(e => b.cls(e));
+                });
+            });
+        };
+
+        build();
+        assert.equal(root.childNodes.length, 1);
+        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
+
+        const element = (<Element>root.childNodes[0]);
+        assert.equal(element.tagName, "DIV");
+        assert.equal(element.classList.length, 2);
+        assert(element.classList.contains("test1"));
+        assert(element.classList.contains("test2"));
+
+        // remove and rebuild nodes.
+        classes.pop();
+        build();
+        assert.equal(element.classList.length, 1);
+        assert(element.classList.contains("test1"));
+        assert(!element.classList.contains("test2"));
+
+        // update and rebuild nodes.
+        classes[0] = "test3";
+        build();
+        assert.equal(element.classList.length, 1);
+        assert(element.classList.contains("test3"));
+        assert(!element.classList.contains("test1"));
+
+        // add and rebuild nodes.
+        classes.push("test4");
+        build();
+        assert.equal(element.classList.length, 2);
+        assert(element.classList.contains("test3"));
+        assert(element.classList.contains("test4"));
+    });
 });
 
