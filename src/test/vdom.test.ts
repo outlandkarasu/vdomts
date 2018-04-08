@@ -38,6 +38,7 @@ describe("vdom", () => {
         const root: HTMLElement = document.createElement("section");
         vdom.build(root, (b) => {
             b.tag("div", () => {
+                b.attr("test", "parent");
                 b.tag("div", () => b.attr("test", "child"));
             });
         });
@@ -211,8 +212,8 @@ describe("vdom", () => {
         });
 
         assert.equal(root.childNodes.length, 2);
-        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        assert.equal((<Element>root.childNodes[0]).tagName, "DIV");
+        assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        assert.equal(root.children[0].tagName, "DIV");
         assert.equal(root.childNodes[1].nodeType, Node.TEXT_NODE);
         assert.equal(root.childNodes[1].textContent, "test");
     });
@@ -225,12 +226,36 @@ describe("vdom", () => {
             });
         });
 
-        assert.equal(root.childNodes.length, 1);
-        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        const element = (<Element>root.childNodes[0]);
+        assert.equal(root.children.length, 1);
+        assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        const element: Element = root.children[0];
         assert.equal(element.tagName, "DIV");
         assert.equal(element.classList.length, 1);
         assert.equal(element.classList[0], "test-class");
+    });
+
+    it("add style class to a child", () => {
+        const root: HTMLElement = document.createElement("section");
+        vdom.build(root, (b) => {
+            b.tag("div", () => {
+                b.cls("test-class-parent");
+                b.tag("section", () => {
+                    b.cls("test-class-child");
+                });
+            });
+        });
+
+        assert.equal(root.children.length, 1);
+        const parent: Element = root.children[0];
+        assert.equal(parent.nodeType, Node.ELEMENT_NODE);
+        assert.equal(parent.tagName, "DIV");
+        assert.equal(parent.classList.length, 1);
+        assert.equal(parent.classList[0], "test-class-parent");
+        assert.equal(parent.children.length, 1);
+
+        const child: Element = parent.children[0];
+        assert.equal(child.classList.length, 1);
+        assert.equal(child.classList[0], "test-class-parent");
     });
 
     it("remove style class", () => {
@@ -245,10 +270,10 @@ describe("vdom", () => {
         };
 
         build();
-        assert.equal(root.childNodes.length, 1);
-        assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
+        assert.equal(root.children.length, 1);
+        assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
 
-        const element = (<Element>root.childNodes[0]);
+        const element: Element = root.children[0];
         assert.equal(element.tagName, "DIV");
         assert.equal(element.classList.length, 2);
         assert(element.classList.contains("test1"));
