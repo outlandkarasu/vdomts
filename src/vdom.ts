@@ -193,6 +193,8 @@ class NodeBuilderImpl implements NodeBuilder {
         const currentEventListenerSet = this.eventListenerSet;
         this.parent = this.node;
         this.node = this.parent.firstChild;
+        this.attributes = null;
+        this.classes = null;
         this.eventListenerSet = null;
         if(fn) {
             this.build(fn);

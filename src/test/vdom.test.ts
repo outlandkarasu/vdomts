@@ -255,7 +255,7 @@ describe("vdom", () => {
 
         const child: Element = parent.children[0];
         assert.equal(child.classList.length, 1);
-        assert.equal(child.classList[0], "test-class-parent");
+        assert.equal(child.classList[0], "test-class-child");
     });
 
     it("remove style class", () => {
