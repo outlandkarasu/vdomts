@@ -56,7 +56,7 @@ export interface NodeBuilder {
     event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder;
 
     /// current Element instance.
-    readonly element: Element | undefined;
+    readonly element: Element;
 }
 
 /// view class interface.
@@ -71,7 +71,7 @@ export interface View {
 
 /// node builder implementation
 class NodeBuilderImpl implements NodeBuilder {
-    private parent: Node;
+    private parent: Element;
     private node: Node | null;
     private attributes: Attributes | null;
     private classes : Classes | null;
@@ -187,11 +187,11 @@ class NodeBuilderImpl implements NodeBuilder {
 
         // recursive call
         const currentParent = this.parent;
-        const currentElement = this.node;
+        const currentElement = <Element>this.node;
         const currentAttributes = this.attributes;
         const currentClasses = this.classes;
         const currentEventListenerSet = this.eventListenerSet;
-        this.parent = this.node;
+        this.parent = <Element>this.node;
         this.node = this.parent.firstChild;
         this.attributes = null;
         this.classes = null;
@@ -265,8 +265,8 @@ class NodeBuilderImpl implements NodeBuilder {
         return this;
     }
 
-    get element(): Element | undefined {
-        return (this.parent && this.parent.nodeType === Node.ELEMENT_NODE) ? (<Element>this.parent) : undefined;
+    get element(): Element {
+        return this.parent;
     }
 }
 
