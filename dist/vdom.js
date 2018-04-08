@@ -6,6 +6,7 @@ var NodeBuilderImpl = (function () {
         this.parent = root;
         this.node = root.firstChild;
         this.attributes = null;
+        this.classes = null;
         this.eventListenerSet = null;
     }
     NodeBuilderImpl.prototype.build = function (fn) {
@@ -41,17 +42,32 @@ var NodeBuilderImpl = (function () {
             return;
         }
         var element = this.node;
-        if (this.attributes) {
-            for (var _i = 0, _a = Object.keys(this.attributes); _i < _a.length; _i++) {
+        var newAttrsSet = this.attributes;
+        if (newAttrsSet) {
+            for (var _i = 0, _a = Object.keys(newAttrsSet); _i < _a.length; _i++) {
                 var key = _a[_i];
-                element.setAttribute(key, this.attributes[key]);
+                element.setAttribute(key, newAttrsSet[key]);
             }
         }
         var attrs = element.attributes;
         for (var i = 0; i < attrs.length;) {
             var key = attrs[i].name;
-            if (!this.attributes || !this.attributes.hasOwnProperty(key)) {
+            if (!newAttrsSet || !newAttrsSet.hasOwnProperty(key)) {
                 element.removeAttribute(key);
+            }
+            else {
+                ++i;
+            }
+        }
+        var classList = element.classList;
+        var newClassList = this.classes;
+        if (newClassList) {
+            classList.add.apply(classList, Object.keys(newClassList));
+        }
+        for (var i = 0; i < classList.length;) {
+            var name_1 = classList[i];
+            if (!newClassList || !newClassList.hasOwnProperty(name_1)) {
+                classList.remove(name_1);
             }
             else {
                 ++i;
@@ -74,6 +90,7 @@ var NodeBuilderImpl = (function () {
         var currentParent = this.parent;
         var currentElement = this.node;
         var currentAttributes = this.attributes;
+        var currentClasses = this.classes;
         var currentEventListenerSet = this.eventListenerSet;
         this.parent = this.node;
         this.node = this.parent.firstChild;
@@ -89,6 +106,7 @@ var NodeBuilderImpl = (function () {
         this.parent = currentParent;
         this.updateAttributes();
         this.attributes = currentAttributes;
+        this.classes = currentClasses;
         if (this.node) {
             this.node = this.node.nextSibling;
         }
@@ -99,6 +117,13 @@ var NodeBuilderImpl = (function () {
             this.attributes = {};
         }
         this.attributes[name] = value;
+        return this;
+    };
+    NodeBuilderImpl.prototype.cls = function (name) {
+        if (!this.classes) {
+            this.classes = {};
+        }
+        this.classes[name] = true;
         return this;
     };
     NodeBuilderImpl.prototype.text = function (value) {
