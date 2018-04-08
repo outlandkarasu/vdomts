@@ -33,6 +33,7 @@ describe("vdom", function () {
         var root = document.createElement("section");
         vdom.build(root, function (b) {
             b.tag("div", function () {
+                b.attr("test", "parent");
                 b.tag("div", function () { return b.attr("test", "child"); });
             });
         });
@@ -171,8 +172,8 @@ describe("vdom", function () {
                 .text("test");
         });
         chai_1.assert.equal(root.childNodes.length, 2);
-        chai_1.assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        chai_1.assert.equal(root.childNodes[0].tagName, "DIV");
+        chai_1.assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(root.children[0].tagName, "DIV");
         chai_1.assert.equal(root.childNodes[1].nodeType, Node.TEXT_NODE);
         chai_1.assert.equal(root.childNodes[1].textContent, "test");
     });
@@ -183,12 +184,33 @@ describe("vdom", function () {
                 b.cls("test-class");
             });
         });
-        chai_1.assert.equal(root.childNodes.length, 1);
-        chai_1.assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        var element = root.childNodes[0];
+        chai_1.assert.equal(root.children.length, 1);
+        chai_1.assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        var element = root.children[0];
         chai_1.assert.equal(element.tagName, "DIV");
         chai_1.assert.equal(element.classList.length, 1);
         chai_1.assert.equal(element.classList[0], "test-class");
+    });
+    it("add style class to a child", function () {
+        var root = document.createElement("section");
+        vdom.build(root, function (b) {
+            b.tag("div", function () {
+                b.cls("test-class-parent");
+                b.tag("section", function () {
+                    b.cls("test-class-child");
+                });
+            });
+        });
+        chai_1.assert.equal(root.children.length, 1);
+        var parent = root.children[0];
+        chai_1.assert.equal(parent.nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(parent.tagName, "DIV");
+        chai_1.assert.equal(parent.classList.length, 1);
+        chai_1.assert.equal(parent.classList[0], "test-class-parent");
+        chai_1.assert.equal(parent.children.length, 1);
+        var child = parent.children[0];
+        chai_1.assert.equal(child.classList.length, 1);
+        chai_1.assert.equal(child.classList[0], "test-class-child");
     });
     it("remove style class", function () {
         var root = document.createElement("section");
@@ -201,9 +223,9 @@ describe("vdom", function () {
             });
         };
         build();
-        chai_1.assert.equal(root.childNodes.length, 1);
-        chai_1.assert.equal(root.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        var element = root.childNodes[0];
+        chai_1.assert.equal(root.children.length, 1);
+        chai_1.assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        var element = root.children[0];
         chai_1.assert.equal(element.tagName, "DIV");
         chai_1.assert.equal(element.classList.length, 2);
         chai_1.assert(element.classList.contains("test1"));
