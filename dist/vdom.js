@@ -156,7 +156,7 @@ var NodeBuilderImpl = (function () {
     };
     Object.defineProperty(NodeBuilderImpl.prototype, "element", {
         get: function () {
-            return (this.parent && this.parent.nodeType === Node.ELEMENT_NODE) ? this.parent : undefined;
+            return this.parent;
         },
         enumerable: true,
         configurable: true

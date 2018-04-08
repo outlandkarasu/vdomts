@@ -4,7 +4,7 @@ export interface NodeBuilder {
     cls(name: string): NodeBuilder;
     text(value: string): NodeBuilder;
     event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder;
-    readonly element: Element | undefined;
+    readonly element: Element;
 }
 export interface View {
     render(b: NodeBuilder): void;
