@@ -1,6 +1,6 @@
 {
   "name": "vdomts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "very simple TypeScript virtual DOM implementation.",
   "main": "./dist/vdom.js",
   "types": "./dist/vdom.d.ts",
