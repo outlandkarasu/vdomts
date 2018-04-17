@@ -12,7 +12,7 @@ describe("vdom", () => {
                     assert.equal(b.element.nodeType, Node.ELEMENT_NODE);
                     assert.equal(b.element.tagName, "SECTION");
                 }
-                b.tag("div");
+                b.tag("div").end();
             }
         });
 
@@ -22,9 +22,7 @@ describe("vdom", () => {
 
     it("append tag and attribute", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => b.tag("div", () => {
-            b.attr("test", "test value");
-        }));
+        vdom.build(root, (b) => b.tag("div").attr("test", "test value"));
 
         assert.equal(root.children.length, 1);
 
@@ -37,10 +35,10 @@ describe("vdom", () => {
     it("append tag attribute and child", () => {
         const root: HTMLElement = document.createElement("section");
         vdom.build(root, (b) => {
-            b.tag("div", () => {
-                b.attr("test", "parent");
-                b.tag("div", () => b.attr("test", "child"));
-            });
+            b.tag("div")
+                .attr("test", "parent")
+                .tag("div")
+                    .attr("test", "child").end();
         });
 
         assert.equal(root.children.length, 1);
@@ -56,7 +54,7 @@ describe("vdom", () => {
 
     it("remove an attribute", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => b.tag("div", () => b.attr("test", "test value")));
+        vdom.build(root, (b) => b.tag("div").attr("test", "test value"));
         let child: Element = root.children[0];
         assert.equal(child.attributes.length, 1);
 
@@ -66,16 +64,15 @@ describe("vdom", () => {
 
     it("remove an attribute", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => b.tag("div", () => {
-            b.attr("test", "test value")
-             .attr("test2", "test2 value");
-        }));
+        vdom.build(root, (b) => {
+            b.tag("div")
+                 .attr("test", "test value")
+                 .attr("test2", "test2 value");
+        });
         let child: Element = root.children[0];
         assert.equal(child.attributes.length, 2);
 
-        vdom.build(root, (b) => b.tag("div", () => {
-            b.attr("test2", "test2 value");
-        }));
+        vdom.build(root, (b) => b.tag("div").attr("test2", "test2 value"));
         assert.equal(child.attributes.length, 1);
         assert.equal(child.attributes.getNamedItem("test2").value, "test2 value");
     });
@@ -93,9 +90,7 @@ describe("vdom", () => {
 
     it("create recursive tags", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => b.tag("div", (b) => {
-            b.tag("section");
-        }));
+        vdom.build(root, (b) => b.tag("div").tag("section"));
 
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].tagName, "DIV");
@@ -104,7 +99,7 @@ describe("vdom", () => {
         assert.equal(child.children[0].tagName, "SECTION");
 
         // redraw
-        vdom.build(root, (b) => b.tag("div", (b) => b.tag("section")));
+        vdom.build(root, (b) => b.tag("div").tag("section"));
 
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].tagName, "DIV");
@@ -115,9 +110,7 @@ describe("vdom", () => {
 
     it("remove unmatch tags", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => {
-            b.tag("div").tag("section");
-        });
+        vdom.build(root, (b) => b.tag("div").end().tag("section"));
 
         assert.equal(root.children.length, 2);
         assert.equal(root.children[0].tagName, "DIV");
@@ -131,9 +124,7 @@ describe("vdom", () => {
 
     it("remove unmatch child tag", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => {
-            b.tag("div", () => b.tag("section"));
-        });
+        vdom.build(root, (b) => b.tag("div").tag("section"));
 
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].tagName, "DIV");
@@ -207,8 +198,7 @@ describe("vdom", () => {
     it("add text node after element", () => {
         const root: HTMLElement = document.createElement("section");
         vdom.build(root, (b) => {
-            b.tag("div")
-             .text("test");
+            b.tag("div").end().text("test");
         });
 
         assert.equal(root.childNodes.length, 2);
@@ -220,11 +210,7 @@ describe("vdom", () => {
 
     it("add style class", () => {
         const root: HTMLElement = document.createElement("section");
-        vdom.build(root, (b) => {
-            b.tag("div", () => {
-                b.cls("test-class");
-            });
-        });
+        vdom.build(root, (b) => b.tag("div").cls("test-class"));
 
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
@@ -237,12 +223,10 @@ describe("vdom", () => {
     it("add style class to a child", () => {
         const root: HTMLElement = document.createElement("section");
         vdom.build(root, (b) => {
-            b.tag("div", () => {
-                b.cls("test-class-parent");
-                b.tag("section", () => {
-                    b.cls("test-class-child");
-                });
-            });
+            b.tag("div")
+                .cls("test-class-parent")
+                .tag("section")
+                    .cls("test-class-child")
         });
 
         assert.equal(root.children.length, 1);
@@ -263,9 +247,8 @@ describe("vdom", () => {
         const classes: string[]  = ["test1", "test2"];
         const build = () => {
             vdom.build(root, (b) => {
-                b.tag("div", () => {
-                    classes.forEach(e => b.cls(e));
-                });
+                b.tag("div");
+                classes.forEach(e => b.cls(e));
             });
         };
 

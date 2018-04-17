@@ -13,13 +13,12 @@ type Classes = { [key:string]: boolean };
 /// node builder type.
 export interface NodeBuilder {
     /**
-     *  create new tag element.
+     *  create new tag element and start new state.
      *
      *  @param name tag name.
-     *  @param fn inner tag definition.
      *  @return node builder.
      */
-    tag(name: string, fn?: (b: NodeBuilder) => void): NodeBuilder;
+    tag(name: string): NodeBuilder;
 
     /**
      *  add an attribute.
@@ -57,6 +56,11 @@ export interface NodeBuilder {
 
     /// current Element instance.
     readonly element: Element;
+
+    /**
+     *  close current element.
+     */
+    end(): NodeBuilder;
 }
 
 /// view class interface.
@@ -69,73 +73,167 @@ export interface View {
     render(b: NodeBuilder): void;
 }
 
-/// node builder implementation
-class NodeBuilderImpl implements NodeBuilder {
-    private parent: Element;
-    private node: Node | null;
-    private attributes: Attributes | null;
-    private classes : Classes | null;
-    private eventListenerSet: EventListenerSet | null;
+/// building state.
+interface State {
+    element: Element;
+    child: Node | null;
+    attributes: Attributes | null;
+    classes : Classes | null;
+    eventListeners: EventListenerSet | null;
+}
 
-    /**
-     *  @param root root element.
-     */
+class NodeBuilderImpl implements NodeBuilder {
+    private stack_: State[];
+
     constructor(root: Element) {
-        this.parent = root;
-        this.node = root.firstChild;
-        this.attributes = null;
-        this.classes = null;
-        this.eventListenerSet = null;
+        this.stack_ = [];
+        this.startNewState(root);
     }
 
-    /**
-     *  build nodes.
-     *
-     *  @param fn build function.
-     */
-    build(fn: (b: NodeBuilder) => void): void {
-        fn(this);
-        this.removeRestNodes();
+    get element(): Element {
+        return this.state.element;
+    }
 
-        const element = this.parent;
-        const currentSet = (<EventListenerSet | undefined>
-            (<any>element).__vdom_eventListenerSet);
-        const newSet = this.eventListenerSet;
-        if(currentSet) {
-            currentSet.eachRemovedEntries(newSet, (e) => {
-                e.removeFrom(element);
-            });
-            currentSet.eachAddedEntries(newSet, (e) => {
-                e.addTo(element);
-            });
-        } else if(newSet) {
-            newSet.eachEntries((e) => e.addTo(element));
+    tag(name: string): NodeBuilder {
+        // create a new child element
+        const state = this.state;
+        const element = state.element;
+        let child = state.child;
+        if(!child
+                || child.nodeType !== Node.ELEMENT_NODE
+                || (<Element>child).tagName !== name.toUpperCase()) {
+            const newChild: Element = document.createElement(name);
+            if(child) {
+                element.insertBefore(newChild, child);
+            } else {
+                element.appendChild(newChild);
+            }
+            state.child = newChild;
+            child = newChild;
         }
-        (<any>element).__vdom_eventListenerSet = newSet;
+        this.startNewState(<Element>child);
+
+        return this;
+    }
+
+    attr(name: string, value: string): NodeBuilder {
+        if(!this.state.attributes) {
+            this.state.attributes = (<Attributes>{});
+        }
+        this.state.attributes[name] = value;
+        return this;
+    }
+
+    cls(name: string): NodeBuilder {
+        if(!this.state.classes) {
+            this.state.classes = (<Classes>{});
+        }
+        this.state.classes[name] = true;
+        return this;
+    }
+
+    text(value: string): NodeBuilder {
+        // create a new child element
+        const state = this.state;
+        let child = state.child;
+        if(!child || child.nodeType !== Node.TEXT_NODE) {
+            const newChild: Text = document.createTextNode(value);
+            const element = state.element;
+            if(child) {
+                element.insertBefore(newChild, child);
+            } else {
+                element.appendChild(newChild);
+            }
+            child = newChild;
+        } else if(child.textContent !== value) {
+            child.textContent = value;
+        }
+
+        // move to next node.
+        state.child = child.nextSibling;
+        return this;
+    }
+
+    event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder {
+        if(!this.state.eventListeners) {
+            this.state.eventListeners = new EventListenerSet();
+        }
+        this.state.eventListeners.add(type, listener, options);
+        return this;
+    }
+
+    end(): NodeBuilder {
+        this.removeRestNodes();
+        this.replaceEventListeners();
+        this.replaceAttributes();
+        this.replaceClasses();
+        this.stack_.pop();
+
+        // move to next element.
+        const state = this.state;
+        if(state && state.child) {
+            state.child = state.child.nextSibling;
+        }
+
+        return this;
+    }
+
+    endAll(): void {
+        while(this.stack_.length > 0) {
+            this.end();
+        }
+    }
+
+    private get state(): State {
+        return this.stack_[this.stack_.length - 1];
+    }
+
+    private startNewState(newRoot: Element) {
+        this.stack_.push({
+            element: newRoot,
+            child: newRoot.firstChild,
+            attributes: null,
+            classes: null,
+            eventListeners: null
+        });
     }
 
     // remove unmatched rest nodes.
     private removeRestNodes(): void {
-        if(!this.node) {
+        const state = this.state;
+        const child = state.child;
+        if(!child) {
             return;
         }
 
-        while(this.node.nextSibling) {
-            this.parent.removeChild(this.node.nextSibling);
+        const element = state.element;
+        while(child.nextSibling) {
+            element.removeChild(child.nextSibling);
         }
-        this.parent.removeChild(this.node);
+        element.removeChild(child);
+    }
+
+    private replaceEventListeners(): void {
+        const state = this.state;
+        const element = state.element;
+        const currentSet = <EventListenerSet | undefined> (<any>element).__vdom_eventListeners;
+        const newSet = state.eventListeners;
+        if(currentSet) {
+            currentSet.eachRemovedEntries(newSet, (e) => e.removeFrom(element));
+            currentSet.eachAddedEntries(newSet, (e) => e.addTo(element));
+        } else if(newSet) {
+            newSet.eachEntries((e) => e.addTo(element));
+        }
+        (<any>element).__vdom_eventListeners = newSet;
     }
 
     // update current element attributes
-    private updateAttributes(): void {
-        if(!this.node || this.node.nodeType !== Node.ELEMENT_NODE) {
-            return;
-        }
-
-        const element = (<Element>this.node);
+    private replaceAttributes(): void {
+        const state = this.state;
+        const element = state.element;
 
         // update exists attributes.
-        const newAttrsSet = this.attributes;
+        const newAttrsSet = state.attributes;
         if(newAttrsSet) {
             for(let key of Object.keys(newAttrsSet)) {
                 element.setAttribute(key, newAttrsSet[key]);
@@ -152,10 +250,15 @@ class NodeBuilderImpl implements NodeBuilder {
                 ++i;
             }
         }
+    }
+
+    private replaceClasses(): void {
+        const state = this.state;
+        const element = state.element;
 
         // update exists classes
         const classList = element.classList;
-        const newClassList = this.classes;
+        const newClassList = state.classes;
         if(newClassList) {
             classList.add(...Object.keys(newClassList));
         }
@@ -170,108 +273,12 @@ class NodeBuilderImpl implements NodeBuilder {
             }
         }
     }
-
-    tag(name: string, fn?: (b: NodeBuilder) => void): NodeBuilder {
-        // create a new child element
-        if(!this.node
-                || this.node.nodeType !== Node.ELEMENT_NODE
-                || (<Element>this.node).tagName !== name.toUpperCase()) {
-            const child: Element = document.createElement(name);
-            if(this.node) {
-                this.parent.insertBefore(child, this.node);
-            } else {
-                this.parent.appendChild(child);
-            }
-            this.node = child;
-        }
-
-        // recursive call
-        const currentParent = this.parent;
-        const currentElement = <Element>this.node;
-        const currentAttributes = this.attributes;
-        const currentClasses = this.classes;
-        const currentEventListenerSet = this.eventListenerSet;
-        this.parent = <Element>this.node;
-        this.node = this.parent.firstChild;
-        this.attributes = null;
-        this.classes = null;
-        this.eventListenerSet = null;
-        if(fn) {
-            this.build(fn);
-        } else {
-            // nothing rest nodes.
-            this.removeRestNodes();
-        }
-        this.eventListenerSet = currentEventListenerSet;
-        this.node = currentElement;
-        this.parent = currentParent;
-
-        // apply attributes from recursive call.
-        this.updateAttributes();
-        this.attributes = currentAttributes;
-        this.classes = currentClasses;
-
-        // move to next element.
-        if(this.node) {
-            this.node = this.node.nextSibling;
-        }
-
-        return this;
-    }
-
-    attr(name: string, value: string): NodeBuilder {
-        if(!this.attributes) {
-            this.attributes = (<Attributes>{});
-        }
-        this.attributes[name] = value;
-        return this;
-    }
-
-    cls(name: string): NodeBuilder {
-        if(!this.classes) {
-            this.classes = (<Classes>{});
-        }
-        this.classes[name] = true;
-        return this;
-    }
-
-    text(value: string): NodeBuilder {
-        // create a new child element
-        if(!this.node || this.node.nodeType !== Node.TEXT_NODE) {
-            const child: Text = document.createTextNode(value);
-            if(this.node) {
-                this.parent.insertBefore(child, this.node);
-            } else {
-                this.parent.appendChild(child);
-            }
-            this.node = child;
-        } else if(this.node.textContent !== value) {
-            this.node.textContent = value;
-        }
-
-        // move to next node.
-        if(this.node) {
-            this.node = this.node.nextSibling;
-        }
-
-        return this;
-    }
-
-    event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder {
-        if(!this.eventListenerSet) {
-            this.eventListenerSet = new EventListenerSet();
-        }
-        this.eventListenerSet.add(type, listener, options);
-        return this;
-    }
-
-    get element(): Element {
-        return this.parent;
-    }
 }
 
 export function build(root: Element, fn: (b: NodeBuilder) => void): Element {
-    (new NodeBuilderImpl(root)).build(fn);
+    const builder = new NodeBuilderImpl(root);
+    fn(builder);
+    builder.endAll();
     return root;
 }
 
