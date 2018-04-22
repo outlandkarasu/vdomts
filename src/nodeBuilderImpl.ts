@@ -146,10 +146,11 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder {
-        if(!this.state.eventListeners) {
-            this.state.eventListeners = new EventListenerSet();
+        const state = this.state;
+        if(!state.eventListeners) {
+            state.eventListeners = new EventListenerSet();
         }
-        this.state.eventListeners.add(type, handler, options);
+        state.eventListeners.add(this.viewState.view, type, handler, options);
         return this;
     }
 

@@ -8,11 +8,13 @@ export type EventOptions = boolean | AddEventListenerOptions | undefined;
 
 /// event listener entry.
 export class EventListenerEntry {
+    private view_: View;
     private type_: string;
     private handler_: EventHandler;
     private options_: EventOptions;
 
-    constructor(type: string, handler: EventHandler, options: EventOptions) {
+    constructor(view: View, type: string, handler: EventHandler, options: EventOptions) {
+        this.view_ = view;
         this.type_ = type;
         this.handler_ = handler;
         this.options_ = options;
@@ -32,7 +34,8 @@ export class EventListenerEntry {
 
     /// compare event listener
     equals(other: EventListenerEntry): boolean {
-        return this.type_ === other.type_
+        return this.view_ === other.view_
+            && this.type_ === other.type_
             && this.handler_ === other.handler_
             && this.capture === other.capture;
     }
@@ -58,8 +61,8 @@ export class EventListenerSet {
     }
 
     /// add an event listener.
-    add(type: string, handler: EventHandler, options: EventOptions) {
-        this.entries_.push(new EventListenerEntry(type, handler, options));
+    add(view: View, type: string, handler: EventHandler, options: EventOptions) {
+        this.entries_.push(new EventListenerEntry(view, type, handler, options));
     }
 
     /// find an event listener.
