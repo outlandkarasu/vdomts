@@ -96,12 +96,49 @@ interface State {
     eventListeners: EventListenerSet | null;
 }
 
-class NodeBuilderImpl implements NodeBuilder {
+class ViewState {
     private stack_: State[];
+    private view_: View;
 
-    constructor(root: Element) {
+    constructor(root: Element, view: View) {
         this.stack_ = [];
+        this.view_ = view;
         this.startNewState(root);
+    }
+
+    get view(): View {
+        return this.view_;
+    }
+
+    get state(): State {
+        return this.stack_[this.stack_.length - 1];
+    }
+
+    get stateCount(): number {
+        return this.stack_.length;
+    }
+
+    startNewState(newRoot: Element): void {
+        this.stack_.push({
+            element: newRoot,
+            child: newRoot.firstChild,
+            attributes: null,
+            classes: null,
+            eventListeners: null
+        });
+    }
+
+    popState(): void {
+        this.stack_.pop();
+    }
+}
+
+class NodeBuilderImpl implements NodeBuilder {
+    private stack_: ViewState[];
+
+    constructor(root: Element, view: View) {
+        this.stack_ = [];
+        this.startNewViewState(root, view);
     }
 
     get element(): Element {
@@ -169,7 +206,22 @@ class NodeBuilderImpl implements NodeBuilder {
     }
 
     view(v: View): NodeBuilder {
-        v.render(this.tag(v.tagName));
+        try {
+            // start view element tag.
+            this.tag(v.tagName);
+
+            // start view rendering.
+            try {
+                this.startNewViewState(this.state.element, v);
+                v.render(this);
+            } finally {
+                // end view rendering.
+                this.endViewState();
+            }
+        } finally {
+            // close view element tag
+            this.end();
+        }
         return this;
     }
 
@@ -182,11 +234,15 @@ class NodeBuilderImpl implements NodeBuilder {
     }
 
     end(): NodeBuilder {
+        return this.viewState.stateCount < 2 ? this : this.forceEnd();
+    }
+
+    private forceEnd(): NodeBuilder {
         this.removeRestNodes();
         this.replaceEventListeners();
         this.replaceAttributes();
         this.replaceClasses();
-        this.stack_.pop();
+        this.viewState.popState();
 
         // move to next element.
         const state = this.state;
@@ -198,23 +254,38 @@ class NodeBuilderImpl implements NodeBuilder {
     }
 
     endAll(): void {
-        while(this.stack_.length > 0) {
-            this.end();
+        while(this.viewState.stateCount > 0) {
+            this.forceEnd();
         }
     }
 
-    private get state(): State {
+    build(fn: (b: NodeBuilder) => void): void {
+        try {
+          fn(this);
+        } finally {
+            this.endViewState();
+        }
+    }
+
+    private get viewState(): ViewState {
         return this.stack_[this.stack_.length - 1];
     }
 
-    private startNewState(newRoot: Element) {
-        this.stack_.push({
-            element: newRoot,
-            child: newRoot.firstChild,
-            attributes: null,
-            classes: null,
-            eventListeners: null
-        });
+    private get state(): State {
+        return this.viewState.state;
+    }
+
+    private startNewState(newRoot: Element): void {
+        this.viewState.startNewState(newRoot);
+    }
+
+    private startNewViewState(newRoot: Element, view: View): void {
+        this.stack_.push(new ViewState(newRoot, view));
+    }
+
+    private endViewState() {
+        this.endAll();
+        this.stack_.pop();
     }
 
     // remove unmatched rest nodes.
@@ -295,16 +366,17 @@ class NodeBuilderImpl implements NodeBuilder {
 }
 
 export function build(root: Element, fn: (b: NodeBuilder) => void): Element {
-    const builder = new NodeBuilderImpl(root);
-    fn(builder);
-    builder.endAll();
-    return root;
-}
+    const rootView = {
+        get tagName() {
+            return root.tagName;
+        },
 
-export function render(root: Element, v: View): Element {
-    const builder = new NodeBuilderImpl(root);
-    builder.view(v);
-    builder.endAll();
+        render(b: NodeBuilder): void {
+            // do nothing
+        }
+    };
+
+    (new NodeBuilderImpl(root, rootView)).build(fn);
     return root;
 }
 

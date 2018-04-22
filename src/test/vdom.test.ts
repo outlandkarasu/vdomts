@@ -285,17 +285,54 @@ describe("vdom css list", () => {
 
 describe("vdom sub view", () => {
     const root: HTMLElement = document.createElement("div");
+
     it("render view", () => {
         const view = {
             tagName: "div",
             render(b: vdom.NodeBuilder): void {
             }
         };
-        vdom.render(root, view);
+        vdom.build(root, (b) => b.view(view));
 
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
         assert.equal(root.children[0].tagName, "DIV");
+    });
+
+    it("render sub view", () => {
+        const subview = {
+            tagName: "input",
+            render(b: vdom.NodeBuilder): void {
+                // unnecessary close tag.
+                b.end();
+                b.tag("section").end();
+            }
+        };
+        const view = {
+            tagName: "div",
+            render(b: vdom.NodeBuilder): void {
+                b.view(subview);
+                b.text("test");
+            }
+        };
+        vdom.build(root, (b) => b.view(view));
+
+        assert.equal(root.children.length, 1);
+
+        const viewElement = root.children[0];
+        assert.equal(viewElement.nodeType, Node.ELEMENT_NODE);
+        assert.equal(viewElement.tagName, "DIV");
+
+        // element + text node.
+        assert.equal(viewElement.childNodes.length, 2);
+
+        // sub view element
+        assert.equal(viewElement.childNodes[0].nodeType, Node.ELEMENT_NODE);
+        assert.equal(viewElement.children[0].tagName, "INPUT");
+
+        // text node
+        assert.equal(viewElement.childNodes[1].nodeType, Node.TEXT_NODE);
+        assert.equal(viewElement.childNodes[1].textContent, "test");
     });
 });
 
