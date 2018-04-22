@@ -301,7 +301,7 @@ describe("vdom sub view", () => {
 
     it("render sub view", () => {
         const subview = {
-            tagName: "input",
+            tagName: "section",
             render(b: vdom.NodeBuilder): void {
                 // unnecessary close tag.
                 b.end();
@@ -328,7 +328,10 @@ describe("vdom sub view", () => {
 
         // sub view element
         assert.equal(viewElement.childNodes[0].nodeType, Node.ELEMENT_NODE);
-        assert.equal(viewElement.children[0].tagName, "INPUT");
+        const child = viewElement.children[0];
+        assert.equal(child.tagName, "SECTION");
+        assert.equal(child.children.length, 1);
+        assert.equal(child.children[0].tagName, "SECTION");
 
         // text node
         assert.equal(viewElement.childNodes[1].nodeType, Node.TEXT_NODE);
