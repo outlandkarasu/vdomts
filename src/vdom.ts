@@ -46,6 +46,14 @@ export interface NodeBuilder {
     text(value: string): NodeBuilder;
 
     /**
+     *  add a sub view.
+     *
+     *  @param v sub view.
+     *  @return node builder.
+     */
+    view(v: View): NodeBuilder;
+
+    /**
      *  add event listener.
      *
      *  @param eventType listening event type.
@@ -65,6 +73,12 @@ export interface NodeBuilder {
 
 /// view class interface.
 export interface View {
+
+    /**
+     *  @return element tag name.
+     */
+    readonly tagName: string;
+
     /**
      *  render this view to node.
      *
@@ -151,6 +165,11 @@ class NodeBuilderImpl implements NodeBuilder {
 
         // move to next node.
         state.child = child.nextSibling;
+        return this;
+    }
+
+    view(v: View): NodeBuilder {
+        v.render(this.tag(v.tagName));
         return this;
     }
 
@@ -278,6 +297,13 @@ class NodeBuilderImpl implements NodeBuilder {
 export function build(root: Element, fn: (b: NodeBuilder) => void): Element {
     const builder = new NodeBuilderImpl(root);
     fn(builder);
+    builder.endAll();
+    return root;
+}
+
+export function render(root: Element, v: View): Element {
+    const builder = new NodeBuilderImpl(root);
+    builder.view(v);
     builder.endAll();
     return root;
 }

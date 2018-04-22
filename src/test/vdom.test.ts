@@ -283,3 +283,19 @@ describe("vdom css list", () => {
     });
 });
 
+describe("vdom sub view", () => {
+    const root: HTMLElement = document.createElement("div");
+    it("render view", () => {
+        const view = {
+            tagName: "div",
+            render(b: vdom.NodeBuilder): void {
+            }
+        };
+        vdom.render(root, view);
+
+        assert.equal(root.children.length, 1);
+        assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
+        assert.equal(root.children[0].tagName, "DIV");
+    });
+});
+
