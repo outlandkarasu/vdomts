@@ -2,6 +2,9 @@
  *  Virtual DOM implementation.
  */
 
+/// event handler type.
+export type EventHandler = (e: Event) => any;
+
 /// node builder type.
 export interface NodeBuilder {
 
@@ -47,13 +50,13 @@ export interface NodeBuilder {
     view(v: View): NodeBuilder;
 
     /**
-     *  add event listener.
+     *  add event handler.
      *
      *  @param eventType listening event type.
-     *  @param listener event listener.
+     *  @param handler event handler.
      *  @param option event capture | event listen options.
      */
-    event(type: string, listener: (e: Event) => any, options?: boolean | AddEventListenerOptions): NodeBuilder;
+    event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder;
 
     /// current Element instance.
     readonly element: Element;

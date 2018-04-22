@@ -2,17 +2,19 @@
  *  Event listener map.
  */
 
+import {View, EventHandler} from "./vdom";
+
 export type EventOptions = boolean | AddEventListenerOptions | undefined;
 
 /// event listener entry.
 export class EventListenerEntry {
     private type_: string;
-    private listener_: EventListenerOrEventListenerObject;
+    private handler_: EventHandler;
     private options_: EventOptions;
 
-    constructor(type: string, listener: EventListenerOrEventListenerObject, options: EventOptions) {
+    constructor(type: string, handler: EventHandler, options: EventOptions) {
         this.type_ = type;
-        this.listener_ = listener;
+        this.handler_ = handler;
         this.options_ = options;
     }
 
@@ -31,18 +33,18 @@ export class EventListenerEntry {
     /// compare event listener
     equals(other: EventListenerEntry): boolean {
         return this.type_ === other.type_
-            && this.listener_ === other.listener_
+            && this.handler_ === other.handler_
             && this.capture === other.capture;
     }
 
     /// add event handler to target.
     addTo(target: EventTarget): void {
-        target.addEventListener(this.type_, this.listener_, this.options_);
+        target.addEventListener(this.type_, this.handler_, this.options_);
     }
 
     /// remove event handler from target.
     removeFrom(target: EventTarget): void {
-        target.removeEventListener(this.type_, this.listener_, this.options_);
+        target.removeEventListener(this.type_, this.handler_, this.options_);
     }
 }
 
@@ -56,8 +58,8 @@ export class EventListenerSet {
     }
 
     /// add an event listener.
-    add(type: string, listener: EventListenerOrEventListenerObject, options: EventOptions) {
-        this.entries_.push(new EventListenerEntry(type, listener, options));
+    add(type: string, handler: EventHandler, options: EventOptions) {
+        this.entries_.push(new EventListenerEntry(type, handler, options));
     }
 
     /// find an event listener.

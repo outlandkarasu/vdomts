@@ -1,4 +1,4 @@
-import {View, NodeBuilder} from "./vdom";
+import {View, NodeBuilder, EventHandler} from "./vdom";
 import {EventListenerSet} from "./eventListenerSet";
 
 /// node attributes type.
@@ -145,11 +145,11 @@ export class NodeBuilderImpl implements NodeBuilder {
         return this;
     }
 
-    event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder {
+    event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder {
         if(!this.state.eventListeners) {
             this.state.eventListeners = new EventListenerSet();
         }
-        this.state.eventListeners.add(type, listener, options);
+        this.state.eventListeners.add(type, handler, options);
         return this;
     }
 
