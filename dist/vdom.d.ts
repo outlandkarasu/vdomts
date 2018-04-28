@@ -1,10 +1,11 @@
+export declare type EventHandler = (e: Event) => any;
 export interface NodeBuilder {
     tag(name: string): NodeBuilder;
     attr(name: string, value: string): NodeBuilder;
     cls(name: string): NodeBuilder;
     text(value: string): NodeBuilder;
     view(v: View): NodeBuilder;
-    event(type: string, listener: (e: Event) => any, options?: boolean | AddEventListenerOptions): NodeBuilder;
+    event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder;
     readonly element: Element;
     end(): NodeBuilder;
 }

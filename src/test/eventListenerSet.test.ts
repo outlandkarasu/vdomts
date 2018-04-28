@@ -35,86 +35,67 @@ describe("EventListenerEntry", () => {
         const fn = () => {};
         const eventListenerSet = new ev.EventListenerSet();
         eventListenerSet.add(view, "click", fn, false);
-
-        assert(eventListenerSet.find(new ev.EventListenerEntry(view, "click", fn, false)));
+        assert(eventListenerSet.contains(view, "click", fn, false));
     });
 
     it("for each removed event listeners", () => {
         const fn1 = () => {};
         const fn2 = () => {};
-        const set1 = new ev.EventListenerSet();
-        set1.add(view, "click", fn1, false);
-        set1.add(view, "dblclick", fn1, false);
-        set1.add(view, "click", fn1, true);
-        set1.add(view, "click", fn2, true);
-        set1.add(view, "click", fn2, true);
-        set1.add(view, "click", fn2, false);
+        const target = new EventTarget();
+        const set = new ev.EventListenerSet();
+        set.add(view, "click", fn1, false);
+        set.add(view, "dblclick", fn1, false);
+        set.add(view, "click", fn1, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, false);
 
-        const set2 = new ev.EventListenerSet();
-        set2.add(view, "click", fn1, false);
-        //set2.add("dblclick", fn1, false);
-        set2.add(view, "click", fn1, true);
-        set2.add(view, "click", fn2, true);
-        set2.add(view, "click", fn2, true);
-        set2.add(view, "click", fn2, false);
+        set.syncHandlers(target);
 
-        let removed: ev.EventListenerEntry | undefined = undefined;
-        set1.eachRemovedEntries(set2, (e) => {
-            removed = e;
-        });
-        assert(removed, "not removed");
-        if(removed) {
-        assert((<ev.EventListenerEntry>removed).equals(new ev.EventListenerEntry(view, "dblclick", fn1, false)));
-        }
+        set.add(view, "click", fn1, false);
+        //set.add("dblclick", fn1, false);
+        set.add(view, "click", fn1, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, false);
+
+        set.syncHandlers(target);
+
+        assert(set.contains(view, "click", fn1, false));
+        assert(!set.contains(view, "dblclick", fn1, false)); // removed
+        assert(set.contains(view, "click", fn1, true));
+        assert(set.contains(view, "click", fn2, true));
+        assert(set.contains(view, "click", fn2, true));
+        assert(set.contains(view, "click", fn2, false));
     });
 
     it("for each added event listeners", () => {
         const fn1 = () => {};
         const fn2 = () => {};
-        const set1 = new ev.EventListenerSet();
-        set1.add(view, "click", fn1, false);
-        set1.add(view, "dblclick", fn1, false);
-        set1.add(view, "click", fn1, true);
-        set1.add(view, "click", fn2, true);
-        set1.add(view, "click", fn2, true);
-        //set1.add("click", fn2, false);
+        const target = new EventTarget();
+        const set = new ev.EventListenerSet();
+        set.add(view, "click", fn1, false);
+        set.add(view, "dblclick", fn1, false);
+        set.add(view, "click", fn1, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, true);
+        //set.add(view, "click", fn2, false);
 
-        const set2 = new ev.EventListenerSet();
-        set2.add(view, "click", fn1, false);
-        set2.add(view, "dblclick", fn1, false);
-        set2.add(view, "click", fn1, true);
-        set2.add(view, "click", fn2, true);
-        set2.add(view, "click", fn2, true);
-        set2.add(view, "click", fn2, false);
+        set.syncHandlers(target);
 
-        let added: ev.EventListenerEntry | undefined = undefined;
-        set1.eachAddedEntries(set2, (e) => {
-            added = e;
-        });
-        assert(added, "not added");
-        if(added) {
-            assert((<ev.EventListenerEntry>added).equals(new ev.EventListenerEntry(view, "click", fn2, false)));
-        }
-    });
+        set.add(view, "click", fn1, false);
+        set.add(view, "dblclick", fn1, false);
+        set.add(view, "click", fn1, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, true);
+        set.add(view, "click", fn2, false);
 
-    it("undefined new set", () => {
-        const fn1 = () => {};
-        const fn2 = () => {};
-        const set1 = new ev.EventListenerSet();
-        set1.add(view, "click", fn1, false);
-        set1.add(view, "dblclick", fn1, false);
-        set1.add(view, "click", fn1, true);
-        set1.add(view, "click", fn2, true);
-        set1.add(view, "click", fn2, true);
-        set1.add(view, "click", fn2, false);
-
-        let count = 0;
-        set1.eachRemovedEntries(null, (e) => ++count);
-        assert.equal(count, 6);
-
-        count = 0;
-        set1.eachAddedEntries(null, (e) => ++count);
-        assert.equal(count, 0);
+        assert(set.contains(view, "click", fn1, false));
+        assert(set.contains(view, "dblclick", fn1, false));
+        assert(set.contains(view, "click", fn1, true));
+        assert(set.contains(view, "click", fn2, true));
+        assert(set.contains(view, "click", fn2, true));
+        assert(set.contains(view, "click", fn2, false));
     });
 });
 

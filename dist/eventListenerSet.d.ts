@@ -1,20 +1,28 @@
+import { View, EventHandler } from "./vdom";
 export declare type EventOptions = boolean | AddEventListenerOptions | undefined;
 export declare class EventListenerEntry {
+    private view_;
     private type_;
-    private listener_;
+    private handler_;
+    private closure_;
     private options_;
-    constructor(type: string, listener: EventListenerOrEventListenerObject, options: EventOptions);
+    private added_;
+    private target_;
+    constructor(view: View, type: string, handler: EventHandler, options: EventOptions);
+    readonly added: boolean;
     readonly capture: boolean;
+    match(view: View, type: string, handler: EventHandler, options: EventOptions): boolean;
     equals(other: EventListenerEntry): boolean;
-    addTo(target: EventTarget): void;
-    removeFrom(target: EventTarget): void;
+    addEventHandlerTo(target: EventTarget): void;
+    removeEventHandler(): void;
+    setAddedFlag(): void;
+    clearAddedFlag(): void;
 }
 export declare class EventListenerSet {
     private entries_;
     constructor();
-    add(type: string, listener: EventListenerOrEventListenerObject, options: EventOptions): void;
-    find(e: EventListenerEntry): boolean;
-    eachRemovedEntries(newSet: EventListenerSet | null, fn: (e: EventListenerEntry) => void): void;
-    eachAddedEntries(newSet: EventListenerSet | null, fn: (e: EventListenerEntry) => void): void;
-    eachEntries(fn: (e: EventListenerEntry) => void): void;
+    contains(view: View, type: string, handler: EventHandler, options: EventOptions): boolean;
+    add(view: View, type: string, handler: EventHandler, options: EventOptions): void;
+    syncHandlers(target: EventTarget): void;
+    private find(view, type, handler, options);
 }

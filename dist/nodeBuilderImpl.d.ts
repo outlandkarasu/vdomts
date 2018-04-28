@@ -1,4 +1,4 @@
-import { View, NodeBuilder } from "./vdom";
+import { View, NodeBuilder, EventHandler } from "./vdom";
 export declare class NodeBuilderImpl implements NodeBuilder {
     private stack_;
     constructor(root: Element, view: View);
@@ -8,7 +8,7 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     cls(name: string): NodeBuilder;
     text(value: string): NodeBuilder;
     view(v: View): NodeBuilder;
-    event(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): NodeBuilder;
+    event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder;
     end(): NodeBuilder;
     private forceEnd();
     endAll(): void;
@@ -19,7 +19,7 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     private startNewViewState(newRoot, view);
     private endViewState();
     private removeRestNodes();
-    private replaceEventListeners();
+    private syncEventListeners();
     private replaceAttributes();
     private replaceClasses();
 }

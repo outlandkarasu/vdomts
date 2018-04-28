@@ -8,12 +8,141 @@ type Attributes = { [key:string]: string };
 type Classes = { [key:string]: boolean };
 
 /// building state.
-interface State {
+class State {
+    private view_: View;
     element: Element;
     child: Node | null;
-    attributes: Attributes | null;
-    classes : Classes | null;
-    eventListeners: EventListenerSet | null;
+    private attributes_: Attributes | null;
+    private classes_: Classes | null;
+
+    constructor(view: View, element: Element, child: Node | null) {
+        this.view_ = view;
+        this.element = element;
+        this.child = child;
+        this.attributes_ = null;
+        this.classes_ = null;
+    }
+
+    attr(name: string, value: string): void {
+        if(!this.attributes_) {
+            this.attributes_ = (<Attributes>{});
+        }
+        this.attributes_[name] = value;
+    }
+
+    cls(name: string): void {
+        if(!this.classes_) {
+            this.classes_ = (<Classes>{});
+        }
+        this.classes_[name] = true;
+    }
+
+    text(value: string): void {
+        // create a new child element
+        let child = this.child;
+        if(!child || child.nodeType !== Node.TEXT_NODE) {
+            const newChild: Text = document.createTextNode(value);
+            const element = this.element;
+            if(child) {
+                element.insertBefore(newChild, child);
+            } else {
+                element.appendChild(newChild);
+            }
+            child = newChild;
+        } else if(child.textContent !== value) {
+            child.textContent = value;
+        }
+
+        // move to next node.
+        this.child = child.nextSibling;
+    }
+
+    event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): void {
+        if(!this.eventListeners) {
+            this.eventListeners = new EventListenerSet();
+        }
+        this.eventListeners.add(this.view_, type, handler, options);
+    }
+
+
+    get eventListeners(): EventListenerSet | null {
+        return <EventListenerSet | null> (<any>this.element).__vdom_eventListeners;
+    }
+
+    set eventListeners(eventListenerSet: EventListenerSet | null) {
+        (<any>this.element).__vdom_eventListeners = eventListenerSet;
+    }
+
+    /// remove unmatched rest nodes.
+    removeRestNodes(): void {
+        const child = this.child;
+        if(!child) {
+            return;
+        }
+
+        const element = this.element;
+        while(child.nextSibling) {
+            element.removeChild(child.nextSibling);
+        }
+        element.removeChild(child);
+    }
+
+    syncEventListeners(): void {
+        const eventListeners = this.eventListeners;
+        if(eventListeners) {
+            eventListeners.syncHandlers(this.element);
+        }
+    }
+
+    // update current element attributes
+    replaceAttributes(): void {
+        const element = this.element;
+
+        // update exists attributes.
+        const newAttrsSet = this.attributes_;
+        if(newAttrsSet) {
+            for(let key of Object.keys(newAttrsSet)) {
+                element.setAttribute(key, newAttrsSet[key]);
+            }
+        }
+
+        // remove rest attributes.
+        const attrs = element.attributes;
+        for(let i = 0; i < attrs.length;) {
+            const key = attrs[i].name;
+            if(!newAttrsSet || !newAttrsSet.hasOwnProperty(key)) {
+                element.removeAttribute(key);
+            } else {
+                ++i;
+            }
+        }
+    }
+
+    replaceClasses(): void {
+        // update exists classes
+        const classList = this.element.classList;
+        const newClassList = this.classes_;
+        if(newClassList) {
+            classList.add(...Object.keys(newClassList));
+        }
+
+        // remove rest classes.
+        for(let i = 0; i < classList.length;) {
+            const name = classList[i];
+            if(!newClassList || !newClassList.hasOwnProperty(name)) {
+                classList.remove(name);
+            } else {
+                ++i;
+            }
+        }
+    }
+
+    syncHandlers(): void {
+        const eventListeners = this.eventListeners;
+        if(eventListeners) {
+            eventListeners.syncHandlers(this.element);
+        }
+    }
 }
 
 class ViewState {
@@ -39,13 +168,7 @@ class ViewState {
     }
 
     startNewState(newRoot: Element): void {
-        this.stack_.push({
-            element: newRoot,
-            child: newRoot.firstChild,
-            attributes: null,
-            classes: null,
-            eventListeners: null
-        });
+        this.stack_.push(new State(this.view_, newRoot, newRoot.firstChild));
     }
 
     popState(): void {
@@ -88,40 +211,17 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     attr(name: string, value: string): NodeBuilder {
-        if(!this.state.attributes) {
-            this.state.attributes = (<Attributes>{});
-        }
-        this.state.attributes[name] = value;
+        this.state.attr(name, value);
         return this;
     }
 
     cls(name: string): NodeBuilder {
-        if(!this.state.classes) {
-            this.state.classes = (<Classes>{});
-        }
-        this.state.classes[name] = true;
+        this.state.cls(name);
         return this;
     }
 
     text(value: string): NodeBuilder {
-        // create a new child element
-        const state = this.state;
-        let child = state.child;
-        if(!child || child.nodeType !== Node.TEXT_NODE) {
-            const newChild: Text = document.createTextNode(value);
-            const element = state.element;
-            if(child) {
-                element.insertBefore(newChild, child);
-            } else {
-                element.appendChild(newChild);
-            }
-            child = newChild;
-        } else if(child.textContent !== value) {
-            child.textContent = value;
-        }
-
-        // move to next node.
-        state.child = child.nextSibling;
+        this.state.text(value);
         return this;
     }
 
@@ -146,11 +246,7 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder {
-        const state = this.state;
-        if(!state.eventListeners) {
-            state.eventListeners = new EventListenerSet();
-        }
-        state.eventListeners.add(this.viewState.view, type, handler, options);
+        this.event(type, handler, options);
         return this;
     }
 
@@ -160,7 +256,7 @@ export class NodeBuilderImpl implements NodeBuilder {
 
     private forceEnd(): NodeBuilder {
         this.removeRestNodes();
-        this.replaceEventListeners();
+        this.syncEventListeners();
         this.replaceAttributes();
         this.replaceClasses();
         this.viewState.popState();
@@ -204,85 +300,25 @@ export class NodeBuilderImpl implements NodeBuilder {
         this.stack_.push(new ViewState(newRoot, view));
     }
 
-    private endViewState() {
+    private endViewState(): void {
         this.endAll();
         this.stack_.pop();
     }
 
-    // remove unmatched rest nodes.
     private removeRestNodes(): void {
-        const state = this.state;
-        const child = state.child;
-        if(!child) {
-            return;
-        }
-
-        const element = state.element;
-        while(child.nextSibling) {
-            element.removeChild(child.nextSibling);
-        }
-        element.removeChild(child);
+        this.state.removeRestNodes();
     }
 
-    private replaceEventListeners(): void {
-        const state = this.state;
-        const element = state.element;
-        const currentSet = <EventListenerSet | undefined> (<any>element).__vdom_eventListeners;
-        const newSet = state.eventListeners;
-        if(currentSet) {
-            currentSet.eachRemovedEntries(newSet, (e) => e.removeFrom(element));
-            currentSet.eachAddedEntries(newSet, (e) => e.addTo(element));
-        } else if(newSet) {
-            newSet.eachEntries((e) => e.addTo(element));
-        }
-        (<any>element).__vdom_eventListeners = newSet;
+    private syncEventListeners(): void {
+        this.state.syncEventListeners();
     }
 
-    // update current element attributes
     private replaceAttributes(): void {
-        const state = this.state;
-        const element = state.element;
-
-        // update exists attributes.
-        const newAttrsSet = state.attributes;
-        if(newAttrsSet) {
-            for(let key of Object.keys(newAttrsSet)) {
-                element.setAttribute(key, newAttrsSet[key]);
-            }
-        }
-
-        // remove rest attributes.
-        const attrs = element.attributes;
-        for(let i = 0; i < attrs.length;) {
-            const key = attrs[i].name;
-            if(!newAttrsSet || !newAttrsSet.hasOwnProperty(key)) {
-                element.removeAttribute(key);
-            } else {
-                ++i;
-            }
-        }
+        this.state.replaceAttributes();
     }
 
     private replaceClasses(): void {
-        const state = this.state;
-        const element = state.element;
-
-        // update exists classes
-        const classList = element.classList;
-        const newClassList = state.classes;
-        if(newClassList) {
-            classList.add(...Object.keys(newClassList));
-        }
-
-        // remove rest classes.
-        for(let i = 0; i < classList.length;) {
-            const name = classList[i];
-            if(!newClassList || !newClassList.hasOwnProperty(name)) {
-                classList.remove(name);
-            } else {
-                ++i;
-            }
-        }
+        this.state.replaceClasses();
     }
 }
 
