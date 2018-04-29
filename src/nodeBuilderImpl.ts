@@ -1,5 +1,5 @@
 import {View, NodeBuilder, EventHandler} from "./vdom";
-import {EventListenerSet} from "./eventHandlerSet";
+import {EventHandlerSet} from "./eventHandlerSet";
 
 /// node attributes type.
 type Attributes = { [key:string]: string };
@@ -58,19 +58,19 @@ class State {
     }
 
     event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): void {
-        if(!this.eventListeners) {
-            this.eventListeners = new EventListenerSet();
+        if(!this.eventHandlerSet) {
+            this.eventHandlerSet = new EventHandlerSet();
         }
-        this.eventListeners.add(this.view_, type, handler, options);
+        this.eventHandlerSet.add(this.view_, type, handler, options);
     }
 
 
-    get eventListeners(): EventListenerSet | null {
-        return <EventListenerSet | null> (<any>this.element).__vdom_eventListeners;
+    get eventHandlerSet(): EventHandlerSet | null {
+        return <EventHandlerSet | null> (<any>this.element).__vdom_eventHandlerSet;
     }
 
-    set eventListeners(eventListenerSet: EventListenerSet | null) {
-        (<any>this.element).__vdom_eventListeners = eventListenerSet;
+    set eventHandlerSet(eventHandlerSet: EventHandlerSet | null) {
+        (<any>this.element).__vdom_eventHandlerSet = eventHandlerSet;
     }
 
     /// remove unmatched rest nodes.
@@ -87,14 +87,7 @@ class State {
         element.removeChild(child);
     }
 
-    syncEventListeners(): void {
-        const eventListeners = this.eventListeners;
-        if(eventListeners) {
-            eventListeners.syncHandlers(this.element);
-        }
-    }
-
-    // update current element attributes
+    /// replace element attributes.
     replaceAttributes(): void {
         const element = this.element;
 
@@ -118,6 +111,7 @@ class State {
         }
     }
 
+    /// replace element style classes.
     replaceClasses(): void {
         // update exists classes
         const classList = this.element.classList;
@@ -137,10 +131,10 @@ class State {
         }
     }
 
-    syncHandlers(): void {
-        const eventListeners = this.eventListeners;
-        if(eventListeners) {
-            eventListeners.syncHandlers(this.element);
+    syncEventHandlers(): void {
+        const eventHandlerSet = this.eventHandlerSet;
+        if(eventHandlerSet) {
+            eventHandlerSet.syncEventHandlers(this.element);
         }
     }
 }
@@ -256,7 +250,7 @@ export class NodeBuilderImpl implements NodeBuilder {
 
     private forceEnd(): NodeBuilder {
         this.removeRestNodes();
-        this.syncEventListeners();
+        this.syncEventHandlers();
         this.replaceAttributes();
         this.replaceClasses();
         this.viewState.popState();
@@ -309,8 +303,8 @@ export class NodeBuilderImpl implements NodeBuilder {
         this.state.removeRestNodes();
     }
 
-    private syncEventListeners(): void {
-        this.state.syncEventListeners();
+    private syncEventHandlers(): void {
+        this.state.syncEventHandlers();
     }
 
     private replaceAttributes(): void {

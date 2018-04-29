@@ -17,8 +17,8 @@ function isCapture(options: EventOptions): boolean {
     }
 }
 
-/// event listener entry.
-export class EventListenerEntry {
+/// event handler entry.
+export class EventHandlerEntry {
     private view_: View;
     private type_: string;
     private handler_: EventHandler; private closure_: EventHandler;
@@ -54,8 +54,8 @@ export class EventListenerEntry {
             && this.capture === isCapture(options);
     }
 
-    /// compare event listener
-    equals(other: EventListenerEntry): boolean {
+    /// compare event handler
+    equals(other: EventHandlerEntry): boolean {
         return this.view_ === other.view_
             && this.type_ === other.type_
             && this.handler_ === other.handler_
@@ -97,10 +97,10 @@ export class EventListenerEntry {
     }
 }
 
-/// event listener set
-export class EventListenerSet {
+/// event handler set
+export class EventHandlerSet {
 
-    private entries_: EventListenerEntry[];
+    private entries_: EventHandlerEntry[];
 
     constructor() {
         this.entries_ = [];
@@ -111,19 +111,19 @@ export class EventListenerSet {
         return Boolean(this.find(view, type, handler, options));
     }
 
-    /// add an event listener.
+    /// add an event handler.
     add(view: View, type: string, handler: EventHandler, options: EventOptions): void {
         const found = this.find(view, type, handler, options);
         if(found) {
             found.setAddedFlag();
         } else {
-            this.entries_.push(new EventListenerEntry(view, type, handler, options));
+            this.entries_.push(new EventHandlerEntry(view, type, handler, options));
         }
     }
 
     /// add new handlers and remove unused handlers
-    syncHandlers(target: EventTarget): void {
-        const newEntries: EventListenerEntry[] = [];
+    syncEventHandlers(target: EventTarget): void {
+        const newEntries: EventHandlerEntry[] = [];
         for(const e of this.entries_) {
             if(e.added) {
                 newEntries.push(e);
@@ -136,7 +136,7 @@ export class EventListenerSet {
         this.entries_ = newEntries;
     }
 
-    private find(view: View, type: string, handler: EventHandler, options: EventOptions): EventListenerEntry | undefined {
+    private find(view: View, type: string, handler: EventHandler, options: EventOptions): EventHandlerEntry | undefined {
         return this.entries_.find(e => e.match(view, type, handler, options));
     }
 

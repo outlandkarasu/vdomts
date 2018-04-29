@@ -19,7 +19,7 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     private startNewViewState(newRoot, view);
     private endViewState();
     private removeRestNodes();
-    private syncEventListeners();
+    private syncEventHandlers();
     private replaceAttributes();
     private replaceClasses();
 }

@@ -40,17 +40,17 @@ var State = (function () {
         this.child = child.nextSibling;
     };
     State.prototype.event = function (type, handler, options) {
-        if (!this.eventListeners) {
-            this.eventListeners = new eventHandlerSet_1.EventListenerSet();
+        if (!this.eventHandlerSet) {
+            this.eventHandlerSet = new eventHandlerSet_1.EventHandlerSet();
         }
-        this.eventListeners.add(this.view_, type, handler, options);
+        this.eventHandlerSet.add(this.view_, type, handler, options);
     };
-    Object.defineProperty(State.prototype, "eventListeners", {
+    Object.defineProperty(State.prototype, "eventHandlerSet", {
         get: function () {
-            return this.element.__vdom_eventListeners;
+            return this.element.__vdom_eventHandlerSet;
         },
-        set: function (eventListenerSet) {
-            this.element.__vdom_eventListeners = eventListenerSet;
+        set: function (eventHandlerSet) {
+            this.element.__vdom_eventHandlerSet = eventHandlerSet;
         },
         enumerable: true,
         configurable: true
@@ -65,12 +65,6 @@ var State = (function () {
             element.removeChild(child.nextSibling);
         }
         element.removeChild(child);
-    };
-    State.prototype.syncEventListeners = function () {
-        var eventListeners = this.eventListeners;
-        if (eventListeners) {
-            eventListeners.syncHandlers(this.element);
-        }
     };
     State.prototype.replaceAttributes = function () {
         var element = this.element;
@@ -108,10 +102,10 @@ var State = (function () {
             }
         }
     };
-    State.prototype.syncHandlers = function () {
-        var eventListeners = this.eventListeners;
-        if (eventListeners) {
-            eventListeners.syncHandlers(this.element);
+    State.prototype.syncEventHandlers = function () {
+        var eventHandlerSet = this.eventHandlerSet;
+        if (eventHandlerSet) {
+            eventHandlerSet.syncEventHandlers(this.element);
         }
     };
     return State;
@@ -220,7 +214,7 @@ var NodeBuilderImpl = (function () {
     };
     NodeBuilderImpl.prototype.forceEnd = function () {
         this.removeRestNodes();
-        this.syncEventListeners();
+        this.syncEventHandlers();
         this.replaceAttributes();
         this.replaceClasses();
         this.viewState.popState();
@@ -270,8 +264,8 @@ var NodeBuilderImpl = (function () {
     NodeBuilderImpl.prototype.removeRestNodes = function () {
         this.state.removeRestNodes();
     };
-    NodeBuilderImpl.prototype.syncEventListeners = function () {
-        this.state.syncEventListeners();
+    NodeBuilderImpl.prototype.syncEventHandlers = function () {
+        this.state.syncEventHandlers();
     };
     NodeBuilderImpl.prototype.replaceAttributes = function () {
         this.state.replaceAttributes();

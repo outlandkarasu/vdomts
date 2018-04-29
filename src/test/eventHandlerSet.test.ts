@@ -2,7 +2,7 @@ import {assert} from "chai";
 
 import * as ev from "../eventHandlerSet";
 
-describe("EventListenerEntry", () => {
+describe("EventHandlerEntry", () => {
     const view = {
         tagName: "DIV",
         render(b: any): void {}
@@ -10,39 +10,39 @@ describe("EventListenerEntry", () => {
 
     it("compare same entries", () => {
         const fn = () => {};
-        const e1 = new ev.EventListenerEntry(view, "click", fn, true);
-        const e2 = new ev.EventListenerEntry(view, "click", fn, true);
+        const e1 = new ev.EventHandlerEntry(view, "click", fn, true);
+        const e2 = new ev.EventHandlerEntry(view, "click", fn, true);
 
         assert(e1.equals(e2));
     });
 
     it("compare entries that different event handler", () => {
-        const e1 = new ev.EventListenerEntry(view, "click", () => {}, true);
-        const e2 = new ev.EventListenerEntry(view, "click", () => {}, true);
+        const e1 = new ev.EventHandlerEntry(view, "click", () => {}, true);
+        const e2 = new ev.EventHandlerEntry(view, "click", () => {}, true);
 
         assert(!e1.equals(e2));
     });
 
     it("compare entries that different capture flag", () => {
         const fn = () => {};
-        const e1 = new ev.EventListenerEntry(view, "click", fn, true);
-        const e2 = new ev.EventListenerEntry(view, "click", fn, false);
+        const e1 = new ev.EventHandlerEntry(view, "click", fn, true);
+        const e2 = new ev.EventHandlerEntry(view, "click", fn, false);
 
         assert(!e1.equals(e2));
     });
 
     it("add event listener", () => {
         const fn = () => {};
-        const eventListenerSet = new ev.EventListenerSet();
-        eventListenerSet.add(view, "click", fn, false);
-        assert(eventListenerSet.contains(view, "click", fn, false));
+        const eventHandlerSet = new ev.EventHandlerSet();
+        eventHandlerSet.add(view, "click", fn, false);
+        assert(eventHandlerSet.contains(view, "click", fn, false));
     });
 
     it("for each removed event listeners", () => {
         const fn1 = () => {};
         const fn2 = () => {};
         const target = new EventTarget();
-        const set = new ev.EventListenerSet();
+        const set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
         set.add(view, "click", fn1, true);
@@ -50,7 +50,7 @@ describe("EventListenerEntry", () => {
         set.add(view, "click", fn2, true);
         set.add(view, "click", fn2, false);
 
-        set.syncHandlers(target);
+        set.syncEventHandlers(target);
 
         set.add(view, "click", fn1, false);
         //set.add("dblclick", fn1, false);
@@ -59,7 +59,7 @@ describe("EventListenerEntry", () => {
         set.add(view, "click", fn2, true);
         set.add(view, "click", fn2, false);
 
-        set.syncHandlers(target);
+        set.syncEventHandlers(target);
 
         assert(set.contains(view, "click", fn1, false));
         assert(!set.contains(view, "dblclick", fn1, false)); // removed
@@ -73,7 +73,7 @@ describe("EventListenerEntry", () => {
         const fn1 = () => {};
         const fn2 = () => {};
         const target = new EventTarget();
-        const set = new ev.EventListenerSet();
+        const set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
         set.add(view, "click", fn1, true);
@@ -81,7 +81,7 @@ describe("EventListenerEntry", () => {
         set.add(view, "click", fn2, true);
         //set.add(view, "click", fn2, false);
 
-        set.syncHandlers(target);
+        set.syncEventHandlers(target);
 
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
