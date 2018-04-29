@@ -1,9 +1,10 @@
 import {assert} from "chai";
 
 import * as ev from "../eventHandlerSet";
+import {View} from "../vdom";
 
 describe("EventHandlerEntry", () => {
-    const view = {
+    const view: View = {
         tagName: "DIV",
         render(b: any): void {}
     };
@@ -38,7 +39,7 @@ describe("EventHandlerEntry", () => {
         assert(eventHandlerSet.contains(view, "click", fn, false));
     });
 
-    it("for each removed event listeners", () => {
+    it("add and remove event handlers", () => {
         const fn1 = () => {};
         const fn2 = () => {};
         const target = new EventTarget();
@@ -70,8 +71,18 @@ describe("EventHandlerEntry", () => {
     });
 
     it("for each added event listeners", () => {
-        const fn1 = () => {};
-        const fn2 = () => {};
+        let fn1Called = false;
+        let fn2Called = false;
+
+        const fn1 = function(this: View): void {
+            assert(this === view);
+            fn1Called = true;
+        };
+        const fn2 = function(this: View): void {
+            assert(this === view);
+            fn2Called = true;
+        };
+
         const target = new EventTarget();
         const set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
@@ -83,6 +94,12 @@ describe("EventHandlerEntry", () => {
 
         set.syncEventHandlers(target);
 
+        target.dispatchEvent(new Event("click"));
+        assert(fn1Called);
+        assert(fn2Called);
+
+        fn1Called = false;
+        fn2Called = false;
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
         set.add(view, "click", fn1, true);
