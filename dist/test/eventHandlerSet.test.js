@@ -30,7 +30,7 @@ describe("EventHandlerEntry", function () {
         eventHandlerSet.add(view, "click", fn, false);
         chai_1.assert(eventHandlerSet.contains(view, "click", fn, false));
     });
-    it("for each removed event listeners", function () {
+    it("add and remove event handlers", function () {
         var fn1 = function () { };
         var fn2 = function () { };
         var target = new EventTarget();
@@ -56,8 +56,16 @@ describe("EventHandlerEntry", function () {
         chai_1.assert(set.contains(view, "click", fn2, false));
     });
     it("for each added event listeners", function () {
-        var fn1 = function () { };
-        var fn2 = function () { };
+        var fn1Called = false;
+        var fn2Called = false;
+        var fn1 = function () {
+            chai_1.assert(this === view);
+            fn1Called = true;
+        };
+        var fn2 = function () {
+            chai_1.assert(this === view);
+            fn2Called = true;
+        };
         var target = new EventTarget();
         var set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
@@ -66,6 +74,11 @@ describe("EventHandlerEntry", function () {
         set.add(view, "click", fn2, true);
         set.add(view, "click", fn2, true);
         set.syncEventHandlers(target);
+        target.dispatchEvent(new Event("click"));
+        chai_1.assert(fn1Called);
+        chai_1.assert(fn2Called);
+        fn1Called = false;
+        fn2Called = false;
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
         set.add(view, "click", fn1, true);
