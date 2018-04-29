@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var chai_1 = require("chai");
-var ev = require("../eventListenerSet");
+var ev = require("../eventHandlerSet");
 describe("EventListenerEntry", function () {
     var view = {
         tagName: "DIV",
@@ -80,4 +80,4 @@ describe("EventListenerEntry", function () {
         chai_1.assert(set.contains(view, "click", fn2, false));
     });
 });
-//# sourceMappingURL=eventListenerSet.test.js.map
+//# sourceMappingURL=eventHandlerSet.test.js.map

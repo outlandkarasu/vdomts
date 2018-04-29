@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var eventListenerSet_1 = require("./eventListenerSet");
+var eventHandlerSet_1 = require("./eventHandlerSet");
 var State = (function () {
     function State(view, element, child) {
         this.view_ = view;
@@ -41,7 +41,7 @@ var State = (function () {
     };
     State.prototype.event = function (type, handler, options) {
         if (!this.eventListeners) {
-            this.eventListeners = new eventListenerSet_1.EventListenerSet();
+            this.eventListeners = new eventHandlerSet_1.EventListenerSet();
         }
         this.eventListeners.add(this.view_, type, handler, options);
     };

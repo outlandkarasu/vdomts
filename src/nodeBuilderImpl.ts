@@ -1,5 +1,5 @@
 import {View, NodeBuilder, EventHandler} from "./vdom";
-import {EventListenerSet} from "./eventListenerSet";
+import {EventListenerSet} from "./eventHandlerSet";
 
 /// node attributes type.
 type Attributes = { [key:string]: string };

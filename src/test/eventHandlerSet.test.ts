@@ -1,6 +1,6 @@
 import {assert} from "chai";
 
-import * as ev from "../eventListenerSet";
+import * as ev from "../eventHandlerSet";
 
 describe("EventListenerEntry", () => {
     const view = {
