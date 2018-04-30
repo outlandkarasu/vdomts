@@ -266,5 +266,23 @@ describe("vdom sub view", function () {
         chai_1.assert.equal(viewElement.childNodes[1].nodeType, Node.TEXT_NODE);
         chai_1.assert.equal(viewElement.childNodes[1].textContent, "test");
     });
+    it("handle view event", function () {
+        var view = {
+            tagName: "section",
+            clicked: false,
+            onTest: function (e) {
+                this.clicked = true;
+            },
+            render: function (b) {
+                b.event("test", this.onTest);
+            }
+        };
+        vdom.build(root, function (b) { return b.view(view); });
+        var viewElement = root.children[0];
+        chai_1.assert.equal(viewElement.nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(viewElement.tagName, "SECTION");
+        chai_1.assert(!view.clicked);
+        viewElement.dispatchEvent(new CustomEvent("test"));
+    });
 });
 //# sourceMappingURL=vdom.test.js.map

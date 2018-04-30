@@ -206,7 +206,7 @@ var NodeBuilderImpl = (function () {
         return this;
     };
     NodeBuilderImpl.prototype.event = function (type, handler, options) {
-        this.event(type, handler, options);
+        this.state.event(type, handler, options);
         return this;
     };
     NodeBuilderImpl.prototype.end = function () {
