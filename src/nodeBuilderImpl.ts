@@ -240,7 +240,7 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder {
-        this.event(type, handler, options);
+        this.state.event(type, handler, options);
         return this;
     }
 

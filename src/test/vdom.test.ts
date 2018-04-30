@@ -337,5 +337,29 @@ describe("vdom sub view", () => {
         assert.equal(viewElement.childNodes[1].nodeType, Node.TEXT_NODE);
         assert.equal(viewElement.childNodes[1].textContent, "test");
     });
+
+    it("handle view event", () => {
+        const view = {
+            tagName: "section",
+            clicked: false,
+
+            onTest(e: Event): void {
+                this.clicked = true;
+            },
+
+            render(b: vdom.NodeBuilder): void {
+                b.event("test", this.onTest);
+            }
+        };
+        vdom.build(root, (b) => b.view(view));
+
+        const viewElement = root.children[0];
+        assert.equal(viewElement.nodeType, Node.ELEMENT_NODE);
+        assert.equal(viewElement.tagName, "SECTION");
+
+        assert(!view.clicked);
+        viewElement.dispatchEvent(new CustomEvent("test"));
+        // assert(view.clicked);
+    });
 });
 
