@@ -5,7 +5,7 @@
   "main": "./dist/vdom.js",
   "types": "./dist/vdom.d.ts",
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "test": "karma start"
@@ -27,8 +27,9 @@
     "@types/chai": "4.1.2",
     "@types/karma": "1.7.3",
     "@types/mocha": "5.0.0",
+    "@types/node": "^8.0.0",
     "chai": "4.1.2",
-    "karma": "2.0.0",
+    "karma": "^2.0.2",
     "karma-mocha": "1.3.0",
     "karma-typescript": "3.0.12",
     "mocha": "5.0.5",
