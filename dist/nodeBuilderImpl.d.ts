@@ -23,4 +23,5 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     private replaceAttributes();
     private replaceClasses();
 }
-export declare function build(root: Element, fn: (b: NodeBuilder) => void): Element;
+export declare function build(root: Element, fn: (b: NodeBuilder) => void): void;
+export declare function rebuild(view: View): void;

@@ -223,6 +223,7 @@ export class NodeBuilderImpl implements NodeBuilder {
         try {
             // start view element tag.
             this.tag(v.tagName);
+            v.element = this.state.element;
 
             // start view rendering.
             try {
@@ -316,18 +317,33 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 }
 
-export function build(root: Element, fn: (b: NodeBuilder) => void): Element {
-    const rootView = {
-        get tagName() {
+/**
+ *  build new node tree.
+ *
+ *  @param root root element.
+ *  @param fn building function.
+ */
+export function build(root: Element, fn: (b: NodeBuilder) => void): void {
+    const rootView: View = {
+        get tagName(): string {
             return root.tagName;
         },
-
         render(b: NodeBuilder): void {
             // do nothing
         }
     };
-
     (new NodeBuilderImpl(root, rootView)).build(fn);
-    return root;
+}
+
+/**
+ *  rebuild view node.
+ *  skip if element is null.
+ *
+ *  @param view rebuild view.
+ */
+export function rebuild(view: View): void {
+    if(view.element) {
+        (new NodeBuilderImpl(view.element, view)).build((b) => view.render(b));
+    }
 }
 

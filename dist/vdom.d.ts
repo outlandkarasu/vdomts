@@ -12,5 +12,6 @@ export interface NodeBuilder {
 export interface View {
     readonly tagName: string;
     render(b: NodeBuilder): void;
+    element?: Element;
 }
-export { build } from "./nodeBuilderImpl";
+export { build, rebuild } from "./nodeBuilderImpl";

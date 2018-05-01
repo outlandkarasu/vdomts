@@ -71,7 +71,7 @@ export interface NodeBuilder {
 export interface View {
 
     /**
-     *  @return element tag name.
+     *  element tag name.
      */
     readonly tagName: string;
 
@@ -81,7 +81,12 @@ export interface View {
      *  @param b node builder.
      */
     render(b: NodeBuilder): void;
+
+    /**
+     *  HTML element.
+     */
+    element?: Element;
 }
 
-export {build} from "./nodeBuilderImpl";
+export {build, rebuild} from "./nodeBuilderImpl";
 

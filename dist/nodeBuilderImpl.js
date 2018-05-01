@@ -192,6 +192,7 @@ var NodeBuilderImpl = (function () {
     NodeBuilderImpl.prototype.view = function (v) {
         try {
             this.tag(v.tagName);
+            v.element = this.state.element;
             try {
                 this.startNewViewState(this.state.element, v);
                 v.render(this);
@@ -285,7 +286,12 @@ function build(root, fn) {
         }
     };
     (new NodeBuilderImpl(root, rootView)).build(fn);
-    return root;
 }
 exports.build = build;
+function rebuild(view) {
+    if (view.element) {
+        (new NodeBuilderImpl(view.element, view)).build(function (b) { return view.render(b); });
+    }
+}
+exports.rebuild = rebuild;
 //# sourceMappingURL=nodeBuilderImpl.js.map
