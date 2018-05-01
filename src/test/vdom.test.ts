@@ -287,7 +287,7 @@ describe("vdom sub view", () => {
     const root: HTMLElement = document.createElement("div");
 
     it("render view", () => {
-        const view = {
+        const view: vdom.View = {
             tagName: "div",
             render(b: vdom.NodeBuilder): void {
             }
@@ -297,6 +297,7 @@ describe("vdom sub view", () => {
         assert.equal(root.children.length, 1);
         assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
         assert.equal(root.children[0].tagName, "DIV");
+        assert(root.children[0] === view.element);
     });
 
     it("render sub view", () => {

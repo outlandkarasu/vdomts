@@ -236,6 +236,7 @@ describe("vdom sub view", function () {
         chai_1.assert.equal(root.children.length, 1);
         chai_1.assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
         chai_1.assert.equal(root.children[0].tagName, "DIV");
+        chai_1.assert(root.children[0] === view.element);
     });
     it("render sub view", function () {
         var subview = {
