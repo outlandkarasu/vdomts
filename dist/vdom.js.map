@@ -1,1 +1,1 @@
-{"version":3,"file":"vdom.js","sourceRoot":"","sources":["../src/vdom.ts"],"names":[],"mappings":";;AA0FA,qDAAiD;AAAzC,kCAAA,KAAK,CAAA;AAAE,oCAAA,OAAO,CAAA"}
+{"version":3,"file":"vdom.js","sourceRoot":"","sources":["../src/vdom.ts"],"names":[],"mappings":";;AA0FA,qDAAiD;AAAzC,kCAAA,KAAK,CAAA;AAAE,oCAAA,OAAO,CAAA;AACtB,iCAAsC;AAA9B,yBAAA,MAAM,CAAA;AAAE,wBAAA,KAAK,CAAA"}
