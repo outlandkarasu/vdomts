@@ -57,6 +57,9 @@ export class Store<S> {
     /// reducer entiries.
     private reducers_: ReducerEntry[] = [];
 
+    /// subscribers.
+    private subscribers_: { (store: Store<S>): void } [] = [];
+
     /// get state object.
     get state(): S {
         return this.state_;
@@ -108,7 +111,45 @@ export class Store<S> {
                 called = true;
             }
         }
+
+        if(called) {
+            for(const s of this.subscribers_) {
+                try {
+                    s(this);
+                } catch(e) {
+                    // FIXME: implement better error handling.
+                    console.error(e);
+                }
+            }
+        }
+
         return called;
+    }
+
+    /**
+     *  subscribe store.
+     *
+     *  @param subscriber subscriber function.
+     */
+    subscribe(subscriber: (store: Store<S>) => void): void {
+        if(!this.subscribers_.some(e => e === subscriber)) {
+            this.subscribers_.push(subscriber);
+        }
+    }
+
+    /**
+     *  unsubscribe store.
+     *
+     *  @param subscriber subscriber function.
+     *  @return true if removed subscriber.
+     */
+    unsubscribe(subscriber: (store: Store<S>) => void): boolean {
+        const index = this.subscribers_.findIndex(e => e === subscriber);
+        if(index === -1) {
+            return false;
+        }
+        this.subscribers_.splice(index, 1);
+        return true;
     }
 }
 

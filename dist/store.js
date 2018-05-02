@@ -22,6 +22,7 @@ var ReducerEntry = (function () {
 var Store = (function () {
     function Store(state) {
         this.reducers_ = [];
+        this.subscribers_ = [];
         this.state_ = state;
     }
     Object.defineProperty(Store.prototype, "state", {
@@ -54,7 +55,31 @@ var Store = (function () {
                 called = true;
             }
         }
+        if (called) {
+            for (var _b = 0, _c = this.subscribers_; _b < _c.length; _b++) {
+                var s = _c[_b];
+                try {
+                    s(this);
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            }
+        }
         return called;
+    };
+    Store.prototype.subscribe = function (subscriber) {
+        if (!this.subscribers_.some(function (e) { return e === subscriber; })) {
+            this.subscribers_.push(subscriber);
+        }
+    };
+    Store.prototype.unsubscribe = function (subscriber) {
+        var index = this.subscribers_.findIndex(function (e) { return e === subscriber; });
+        if (index === -1) {
+            return false;
+        }
+        this.subscribers_.splice(index, 1);
+        return true;
     };
     return Store;
 }());

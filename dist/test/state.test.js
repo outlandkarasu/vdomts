@@ -26,7 +26,6 @@ describe("create action", function () {
     });
 });
 describe("reduce state", function () {
-    var store = new store_1.Store({ value: "initial" });
     var TestAction = (function (_super) {
         __extends(TestAction, _super);
         function TestAction() {
@@ -34,21 +33,81 @@ describe("reduce state", function () {
         }
         return TestAction;
     }(store_1.Action));
+    var UnknownAction = (function (_super) {
+        __extends(UnknownAction, _super);
+        function UnknownAction() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return UnknownAction;
+    }(store_1.Action));
     var reducer = function (s, a) {
         s.value = a.param.value;
         return s;
     };
-    store.addReducer(TestAction, reducer);
-    chai_1.assert.equal(store.state.value, "initial");
-    chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
-    chai_1.assert.equal(store.state.value, "test");
-    var TestAction2 = (function (_super) {
-        __extends(TestAction2, _super);
-        function TestAction2() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return TestAction2;
-    }(store_1.Action));
-    chai_1.assert.isFalse(store.doAction(new TestAction2({ value: "test" })));
+    it("can dispatch action", function () {
+        var store = new store_1.Store({ value: "initial" });
+        store.addReducer(TestAction, reducer);
+        chai_1.assert.equal(store.state.value, "initial");
+        chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "test");
+    });
+    it("ignore unknown action", function () {
+        var store = new store_1.Store({ value: "initial" });
+        store.addReducer(TestAction, reducer);
+        chai_1.assert.equal(store.state.value, "initial");
+        chai_1.assert.isFalse(store.doAction(new UnknownAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "initial");
+    });
+    it("can publish action event", function () {
+        var store = new store_1.Store({ value: "initial" });
+        store.addReducer(TestAction, reducer);
+        var called = false;
+        store.subscribe(function (s) {
+            called = true;
+        });
+        chai_1.assert.isFalse(called);
+        chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "test");
+        chai_1.assert.isTrue(called);
+    });
+    it("don't publish unknown action event", function () {
+        var store = new store_1.Store({ value: "initial" });
+        store.addReducer(TestAction, reducer);
+        var called = false;
+        store.subscribe(function (s) {
+            called = true;
+        });
+        chai_1.assert.isFalse(called);
+        chai_1.assert.isFalse(store.doAction(new UnknownAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "initial");
+        chai_1.assert.isFalse(called);
+    });
+    it("can remove subscriber", function () {
+        var store = new store_1.Store({ value: "initial" });
+        store.addReducer(TestAction, reducer);
+        var called1 = false;
+        var subscriber1 = function (s) {
+            called1 = true;
+        };
+        var called2 = false;
+        var subscriber2 = function (s) {
+            called2 = true;
+        };
+        store.subscribe(subscriber1);
+        store.subscribe(subscriber2);
+        chai_1.assert.isFalse(called1);
+        chai_1.assert.isFalse(called2);
+        chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "test");
+        chai_1.assert.isTrue(called1);
+        chai_1.assert.isTrue(called2);
+        chai_1.assert.isTrue(store.unsubscribe(subscriber1));
+        called1 = false;
+        called2 = false;
+        chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
+        chai_1.assert.equal(store.state.value, "test");
+        chai_1.assert.isFalse(called1);
+        chai_1.assert.isTrue(called2);
+    });
 });
 //# sourceMappingURL=state.test.js.map
