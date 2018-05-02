@@ -25,4 +25,30 @@ describe("create action", function () {
         chai_1.assert.equal(a.param.value, "test");
     });
 });
+describe("reduce state", function () {
+    var store = new store_1.Store({ value: "initial" });
+    var TestAction = (function (_super) {
+        __extends(TestAction, _super);
+        function TestAction() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return TestAction;
+    }(store_1.Action));
+    var reducer = function (s, a) {
+        s.value = a.param.value;
+        return s;
+    };
+    store.addReducer(TestAction, reducer);
+    chai_1.assert.equal(store.state.value, "initial");
+    chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
+    chai_1.assert.equal(store.state.value, "test");
+    var TestAction2 = (function (_super) {
+        __extends(TestAction2, _super);
+        function TestAction2() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return TestAction2;
+    }(store_1.Action));
+    chai_1.assert.isFalse(store.doAction(new TestAction2({ value: "test" })));
+});
 //# sourceMappingURL=state.test.js.map
