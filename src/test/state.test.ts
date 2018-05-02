@@ -74,5 +74,43 @@ describe("reduce state", () => {
         assert.equal(store.state.value, "initial");
         assert.isFalse(called);
     });
+
+    it("can remove subscriber", () => {
+        const store = new Store<State>({value: "initial"});
+        store.addReducer(TestAction, reducer);
+
+        let called1 = false;
+        const subscriber1 = (s: Store<State>) => {
+            called1 = true;
+        };
+
+        let called2 = false;
+        const subscriber2 = (s: Store<State>) => {
+            called2 = true;
+        };
+
+        store.subscribe(subscriber1);
+        store.subscribe(subscriber2);
+
+        assert.isFalse(called1);
+        assert.isFalse(called2);
+
+        // dispatch action and publish to subscribers.
+        assert.isTrue(store.doAction(new TestAction({value: "test"})));
+        assert.equal(store.state.value, "test");
+        assert.isTrue(called1);
+        assert.isTrue(called2);
+
+        // remove a subscriber.
+        assert.isTrue(store.unsubscribe(subscriber1));
+
+        // event not publish
+        called1 = false;
+        called2 = false;
+        assert.isTrue(store.doAction(new TestAction({value: "test"})));
+        assert.equal(store.state.value, "test");
+        assert.isFalse(called1);
+        assert.isTrue(called2);
+    });
 });
 

@@ -136,5 +136,20 @@ export class Store<S> {
             this.subscribers_.push(subscriber);
         }
     }
+
+    /**
+     *  unsubscribe store.
+     *
+     *  @param subscriber subscriber function.
+     *  @return true if removed subscriber.
+     */
+    unsubscribe(subscriber: (store: Store<S>) => void): boolean {
+        const index = this.subscribers_.findIndex(e => e === subscriber);
+        if(index === -1) {
+            return false;
+        }
+        this.subscribers_.splice(index, 1);
+        return true;
+    }
 }
 

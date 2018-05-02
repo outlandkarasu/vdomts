@@ -17,4 +17,5 @@ export declare class Store<S> {
     addReducer<A extends Action<P>, P extends Object>(ctor: ActionConstructor<A, P>, reducer: Reducer<S, P, A>): this;
     doAction<A extends Action<P>, P extends Object>(action: A): boolean;
     subscribe(subscriber: (store: Store<S>) => void): void;
+    unsubscribe(subscriber: (store: Store<S>) => void): boolean;
 }

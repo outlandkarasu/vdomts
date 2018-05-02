@@ -73,6 +73,14 @@ var Store = (function () {
             this.subscribers_.push(subscriber);
         }
     };
+    Store.prototype.unsubscribe = function (subscriber) {
+        var index = this.subscribers_.findIndex(function (e) { return e === subscriber; });
+        if (index === -1) {
+            return false;
+        }
+        this.subscribers_.splice(index, 1);
+        return true;
+    };
     return Store;
 }());
 exports.Store = Store;
