@@ -39,9 +39,15 @@ describe("reduce state", function () {
         return s;
     };
     store.addReducer(TestAction, reducer);
+    var called = false;
+    store.subscribe(function (s) {
+        called = true;
+    });
     chai_1.assert.equal(store.state.value, "initial");
+    chai_1.assert.isFalse(called);
     chai_1.assert.isTrue(store.doAction(new TestAction({ value: "test" })));
     chai_1.assert.equal(store.state.value, "test");
+    chai_1.assert.isTrue(called);
     var TestAction2 = (function (_super) {
         __extends(TestAction2, _super);
         function TestAction2() {
@@ -49,6 +55,8 @@ describe("reduce state", function () {
         }
         return TestAction2;
     }(store_1.Action));
+    called = false;
     chai_1.assert.isFalse(store.doAction(new TestAction2({ value: "test" })));
+    chai_1.assert.isFalse(called);
 });
 //# sourceMappingURL=state.test.js.map

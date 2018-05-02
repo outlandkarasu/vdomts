@@ -23,11 +23,21 @@ describe("reduce state", () => {
     };
     store.addReducer(TestAction, reducer);
 
+    let called = false;
+    store.subscribe((s) => {
+        called = true;
+    });
+
     assert.equal(store.state.value, "initial");
+    assert.isFalse(called);
+
     assert.isTrue(store.doAction(new TestAction({value: "test"})));
     assert.equal(store.state.value, "test");
+    assert.isTrue(called);
 
     class TestAction2 extends Action<{value: string}> {}
+    called = false;
     assert.isFalse(store.doAction(new TestAction2({value: "test"})));
+    assert.isFalse(called);
 });
 
