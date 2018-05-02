@@ -15,3 +15,4 @@ export interface View {
     element?: Element;
 }
 export { build, rebuild } from "./nodeBuilderImpl";
+export { Action, Store } from "./store";

@@ -89,4 +89,5 @@ export interface View {
 }
 
 export {build, rebuild} from "./nodeBuilderImpl";
+export {Action, Store} from "./store";
 
