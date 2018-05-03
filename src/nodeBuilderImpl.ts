@@ -301,22 +301,6 @@ export class NodeBuilderImpl implements NodeBuilder {
         this.viewState.endView();
         this.stack_.pop();
     }
-
-    private removeRestNodes(): void {
-        this.state.removeRestNodes();
-    }
-
-    private syncEventHandlers(): void {
-        this.state.syncEventHandlers();
-    }
-
-    private replaceAttributes(): void {
-        this.state.replaceAttributes();
-    }
-
-    private replaceClasses(): void {
-        this.state.replaceClasses();
-    }
 }
 
 /**
