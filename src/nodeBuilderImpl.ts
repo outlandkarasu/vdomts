@@ -236,9 +236,17 @@ export class NodeBuilderImpl implements NodeBuilder {
         return this;
     }
 
+    attrIf(name: string, value: string, enable: boolean): NodeBuilder {
+        return enable ? this.attr(name, value) : this;
+    }
+
     cls(name: string): NodeBuilder {
         this.state.cls(name);
         return this;
+    }
+
+    clsIf(name: string, enable: boolean): NodeBuilder {
+        return enable ? this.cls(name) : this;
     }
 
     text(value: string): NodeBuilder {

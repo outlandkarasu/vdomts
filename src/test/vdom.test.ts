@@ -21,6 +21,23 @@ describe("vdom tags and attributes", () => {
         assert.equal(root.children[0].tagName, "DIV");
     });
 
+    it("append attribute with flag", () => {
+        vdom.build(root, (b) => b.attrIf("test", "test value", false));
+        assert.equal(root.attributes.length, 0);
+
+        vdom.build(root, (b) => b.attrIf("test", "test value", true));
+        assert.equal(root.attributes.length, 1);
+        assert.equal(root.attributes.getNamedItem("test").value, "test value");
+    });
+
+    it("append class with flag", () => {
+        vdom.build(root, (b) => b.clsIf("test-class", false));
+        assert.isEmpty(root.className);
+
+        vdom.build(root, (b) => b.clsIf("test", "test value", true));
+        assert.equal(root.className, "test-class");
+    });
+
     it("append tag and attribute", () => {
         vdom.build(root, (b) => b.tag("div").attr("test", "test value"));
 

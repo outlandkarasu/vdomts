@@ -26,12 +26,31 @@ export interface NodeBuilder {
     attr(name: string, value: string): NodeBuilder;
 
     /**
+     *  add an attribute if enable.
+     *
+     *  @param name attribute name.
+     *  @param value attribute value.
+     *  @param enable enable flag.
+     *  @return node builder.
+     */
+    attrIf(name: string, value: string, enable: boolean): NodeBuilder;
+
+    /**
      *  add an CSS style class.
      *
      *  @param name class name.
      *  @return node builder.
      */
     cls(name: string): NodeBuilder;
+
+    /**
+     *  add an CSS style class if enable.
+     *
+     *  @param name class name.
+     *  @param enable enable flag.
+     *  @return node builder.
+     */
+    clsIf(name: string, enable: boolean): NodeBuilder;
 
     /**
      *  add an text node.
