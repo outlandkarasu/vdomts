@@ -206,6 +206,12 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     tag(name: string): NodeBuilder {
+        const child = this.moveOrInsertNextTag(name);
+        this.viewState.startNewState(child);
+        return this;
+    }
+
+    private moveOrInsertNextTag(name: string): Element {
         // create a new child element
         const state = this.state;
         const element = state.element;
@@ -222,9 +228,7 @@ export class NodeBuilderImpl implements NodeBuilder {
             state.child = newChild;
             child = newChild;
         }
-        this.viewState.startNewState(<Element>child);
-
-        return this;
+        return <Element> child;
     }
 
     attr(name: string, value: string): NodeBuilder {
@@ -243,22 +247,20 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     view(v: View): NodeBuilder {
-        try {
-            // start view element tag.
-            this.tag(v.tagName);
-            v.element = this.state.element;
+        // start view element tag.
+        const element = this.moveOrInsertNextTag(v.tagName);
+        v.element = element;
 
-            // start view rendering.
-            try {
-                this.startNewViewState(this.state.element, v);
-                v.render(this);
-            } finally {
-                // end view rendering.
-                this.endViewState();
-            }
+        // start view rendering.
+        try {
+            this.startNewViewState(v.element, v);
+            v.render(this);
         } finally {
-            // close view element tag
-            this.end();
+            // end view rendering.
+            this.endViewState();
+
+            // move to next element.
+            this.state.child = element.nextSibling;
         }
         return this;
     }

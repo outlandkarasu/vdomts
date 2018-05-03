@@ -304,17 +304,21 @@ describe("vdom sub view", () => {
 
     it("render view", () => {
         const view: vdom.View = {
-            tagName: "div",
+            tagName: "section",
             render(b: vdom.NodeBuilder): void {
                 b.cls("test-class");
             }
         };
-        vdom.build(root, (b) => b.view(view));
+        vdom.build(root, (b) => {
+            b.view(view);
+            assert.equal(root.children[0].tagName, "SECTION");
+            assert.equal(root.children[0].className, "test-class");
+        });
 
         assert.equal(root.children.length, 1);
         const child = root.children[0];
         assert.equal(child.nodeType, Node.ELEMENT_NODE);
-        assert.equal(child.tagName, "DIV");
+        assert.equal(child.tagName, "SECTION");
         assert.equal(child.className, "test-class");
         assert(child === view.element);
     });
