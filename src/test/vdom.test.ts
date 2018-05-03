@@ -83,12 +83,22 @@ describe("vdom tags and attributes", () => {
                  .attr("test", "test value")
                  .attr("test2", "test2 value");
         });
-        let child: Element = root.children[0];
+        const child = root.children[0];
         assert.equal(child.attributes.length, 2);
 
         vdom.build(root, (b) => b.tag("div").attr("test2", "test2 value"));
         assert.equal(child.attributes.length, 1);
         assert.equal(child.attributes.getNamedItem("test2").value, "test2 value");
+    });
+
+    it("set property value", () => {
+        vdom.build(root, (b) => {
+            b.tag("input")
+                 .attr("type", "radio")
+                 .prop("checked", true);
+        });
+        const child = root.children[0];
+        assert.isTrue((<HTMLInputElement>child).checked);
     });
 });
 
