@@ -8,6 +8,7 @@ var State = (function () {
         this.child = child;
         this.attributes_ = null;
         this.classes_ = null;
+        this.properties_ = null;
     }
     State.prototype.attr = function (name, value) {
         if (!this.attributes_) {
@@ -20,6 +21,12 @@ var State = (function () {
             this.classes_ = {};
         }
         this.classes_[name] = true;
+    };
+    State.prototype.prop = function (name, value) {
+        if (!this.properties_) {
+            this.properties_ = {};
+        }
+        this.properties_[name] = value;
     };
     State.prototype.text = function (value) {
         var child = this.child;
@@ -44,6 +51,13 @@ var State = (function () {
             this.eventHandlerSet = new eventHandlerSet_1.EventHandlerSet();
         }
         this.eventHandlerSet.add(this.view_, type, handler, options);
+    };
+    State.prototype.end = function () {
+        this.removeRestNodes();
+        this.syncEventHandlers();
+        this.replaceAttributes();
+        this.replaceClasses();
+        this.updateProperties();
     };
     Object.defineProperty(State.prototype, "eventHandlerSet", {
         get: function () {
@@ -102,6 +116,17 @@ var State = (function () {
             }
         }
     };
+    State.prototype.updateProperties = function () {
+        var properties = this.properties_;
+        if (!properties) {
+            return;
+        }
+        var element = this.element;
+        for (var _i = 0, _a = Object.keys(properties); _i < _a.length; _i++) {
+            var k = _a[_i];
+            element[k] = properties[k];
+        }
+    };
     State.prototype.syncEventHandlers = function () {
         var eventHandlerSet = this.eventHandlerSet;
         if (eventHandlerSet) {
@@ -140,15 +165,31 @@ var ViewState = (function () {
     ViewState.prototype.startNewState = function (newRoot) {
         this.stack_.push(new State(this.view_, newRoot, newRoot.firstChild));
     };
-    ViewState.prototype.popState = function () {
+    ViewState.prototype.endTag = function () {
+        if (this.stack_.length === 1) {
+            return;
+        }
+        this.forceEndTag();
+    };
+    ViewState.prototype.endView = function () {
+        while (this.stack_.length > 0) {
+            this.forceEndTag();
+        }
+    };
+    ViewState.prototype.forceEndTag = function () {
+        this.state.end();
         this.stack_.pop();
+        var parentState = this.state;
+        if (parentState && parentState.child) {
+            parentState.child = parentState.child.nextSibling;
+        }
     };
     return ViewState;
 }());
 var NodeBuilderImpl = (function () {
-    function NodeBuilderImpl(root, view) {
+    function NodeBuilderImpl(root, rootView) {
         this.stack_ = [];
-        this.startNewViewState(root, view);
+        this.startNewViewState(root, rootView);
     }
     Object.defineProperty(NodeBuilderImpl.prototype, "element", {
         get: function () {
@@ -158,6 +199,11 @@ var NodeBuilderImpl = (function () {
         configurable: true
     });
     NodeBuilderImpl.prototype.tag = function (name) {
+        var child = this.moveOrInsertNextTag(name);
+        this.viewState.startNewState(child);
+        return this;
+    };
+    NodeBuilderImpl.prototype.moveOrInsertNextTag = function (name) {
         var state = this.state;
         var element = state.element;
         var child = state.child;
@@ -174,35 +220,43 @@ var NodeBuilderImpl = (function () {
             state.child = newChild;
             child = newChild;
         }
-        this.startNewState(child);
-        return this;
+        return child;
     };
     NodeBuilderImpl.prototype.attr = function (name, value) {
         this.state.attr(name, value);
         return this;
     };
+    NodeBuilderImpl.prototype.attrIf = function (name, value, enable) {
+        return enable ? this.attr(name, value) : this;
+    };
     NodeBuilderImpl.prototype.cls = function (name) {
         this.state.cls(name);
         return this;
+    };
+    NodeBuilderImpl.prototype.clsIf = function (name, enable) {
+        return enable ? this.cls(name) : this;
+    };
+    NodeBuilderImpl.prototype.prop = function (name, value) {
+        this.state.prop(name, value);
+        return this;
+    };
+    NodeBuilderImpl.prototype.propIf = function (name, value, enable) {
+        return enable ? this.prop(name, value) : this;
     };
     NodeBuilderImpl.prototype.text = function (value) {
         this.state.text(value);
         return this;
     };
     NodeBuilderImpl.prototype.view = function (v) {
+        var element = this.moveOrInsertNextTag(v.tagName);
+        v.element = element;
         try {
-            this.tag(v.tagName);
-            v.element = this.state.element;
-            try {
-                this.startNewViewState(this.state.element, v);
-                v.render(this);
-            }
-            finally {
-                this.endViewState();
-            }
+            this.startNewViewState(v.element, v);
+            v.render(this);
         }
         finally {
-            this.end();
+            this.endViewState();
+            this.state.child = element.nextSibling;
         }
         return this;
     };
@@ -211,24 +265,8 @@ var NodeBuilderImpl = (function () {
         return this;
     };
     NodeBuilderImpl.prototype.end = function () {
-        return this.viewState.stateCount < 2 ? this : this.forceEnd();
-    };
-    NodeBuilderImpl.prototype.forceEnd = function () {
-        this.removeRestNodes();
-        this.syncEventHandlers();
-        this.replaceAttributes();
-        this.replaceClasses();
-        this.viewState.popState();
-        var state = this.state;
-        if (state && state.child) {
-            state.child = state.child.nextSibling;
-        }
+        this.viewState.endTag();
         return this;
-    };
-    NodeBuilderImpl.prototype.endAll = function () {
-        while (this.viewState.stateCount > 0) {
-            this.forceEnd();
-        }
     };
     NodeBuilderImpl.prototype.build = function (fn) {
         try {
@@ -252,33 +290,19 @@ var NodeBuilderImpl = (function () {
         enumerable: true,
         configurable: true
     });
-    NodeBuilderImpl.prototype.startNewState = function (newRoot) {
-        this.viewState.startNewState(newRoot);
-    };
     NodeBuilderImpl.prototype.startNewViewState = function (newRoot, view) {
         this.stack_.push(new ViewState(newRoot, view));
     };
     NodeBuilderImpl.prototype.endViewState = function () {
-        this.endAll();
+        this.viewState.endView();
         this.stack_.pop();
-    };
-    NodeBuilderImpl.prototype.removeRestNodes = function () {
-        this.state.removeRestNodes();
-    };
-    NodeBuilderImpl.prototype.syncEventHandlers = function () {
-        this.state.syncEventHandlers();
-    };
-    NodeBuilderImpl.prototype.replaceAttributes = function () {
-        this.state.replaceAttributes();
-    };
-    NodeBuilderImpl.prototype.replaceClasses = function () {
-        this.state.replaceClasses();
     };
     return NodeBuilderImpl;
 }());
 exports.NodeBuilderImpl = NodeBuilderImpl;
 function build(root, fn) {
     var rootView = {
+        element: root,
         get tagName() {
             return root.tagName;
         },

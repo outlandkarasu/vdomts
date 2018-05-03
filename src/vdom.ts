@@ -36,7 +36,7 @@ export interface NodeBuilder {
     attrIf(name: string, value: string, enable: boolean): NodeBuilder;
 
     /**
-     *  add an CSS style class.
+     *  add a CSS style class.
      *
      *  @param name class name.
      *  @return node builder.
@@ -44,13 +44,32 @@ export interface NodeBuilder {
     cls(name: string): NodeBuilder;
 
     /**
-     *  add an CSS style class if enable.
+     *  add a CSS style class if enable.
      *
      *  @param name class name.
      *  @param enable enable flag.
      *  @return node builder.
      */
     clsIf(name: string, enable: boolean): NodeBuilder;
+
+    /**
+     *  add a property.
+     *
+     *  @param name property name.
+     *  @param value property value.
+     *  @return node builder.
+     */
+    prop(name: string, value: any): NodeBuilder;
+
+    /**
+     *  add a property if enable.
+     *
+     *  @param name property name.
+     *  @param value property value.
+     *  @param enable enable flag.
+     *  @return node builder.
+     */
+    propIf(name: string, value: any, enable: boolean): NodeBuilder;
 
     /**
      *  add an text node.

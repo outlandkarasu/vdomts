@@ -18,6 +18,19 @@ describe("vdom tags and attributes", function () {
         chai_1.assert.equal(root.children.length, 1);
         chai_1.assert.equal(root.children[0].tagName, "DIV");
     });
+    it("append attribute with flag", function () {
+        vdom.build(root, function (b) { return b.attrIf("test", "test value", false); });
+        chai_1.assert.equal(root.attributes.length, 0);
+        vdom.build(root, function (b) { return b.attrIf("test", "test value", true); });
+        chai_1.assert.equal(root.attributes.length, 1);
+        chai_1.assert.equal(root.attributes.getNamedItem("test").value, "test value");
+    });
+    it("append class with flag", function () {
+        vdom.build(root, function (b) { return b.clsIf("test-class", false); });
+        chai_1.assert.isEmpty(root.className);
+        vdom.build(root, function (b) { return b.clsIf("test-class", true); });
+        chai_1.assert.equal(root.className, "test-class");
+    });
     it("append tag and attribute", function () {
         vdom.build(root, function (b) { return b.tag("div").attr("test", "test value"); });
         chai_1.assert.equal(root.children.length, 1);
@@ -59,6 +72,37 @@ describe("vdom tags and attributes", function () {
         vdom.build(root, function (b) { return b.tag("div").attr("test2", "test2 value"); });
         chai_1.assert.equal(child.attributes.length, 1);
         chai_1.assert.equal(child.attributes.getNamedItem("test2").value, "test2 value");
+    });
+    it("set property value", function () {
+        vdom.build(root, function (b) {
+            b.tag("input")
+                .attr("type", "radio")
+                .prop("checked", true);
+        });
+        var child = root.children[0];
+        chai_1.assert.isTrue(child.checked);
+    });
+});
+describe("vdom modify root element", function () {
+    it("add class to root element", function () {
+        var root = document.createElement("div");
+        vdom.build(root, function (b) { return b.cls("test-class"); });
+        chai_1.assert.equal(root.className, "test-class");
+    });
+    it("add attribute to root element", function () {
+        var root = document.createElement("div");
+        vdom.build(root, function (b) { return b.attr("data-test", "test-value"); });
+        var attr = root.attributes.getNamedItem("data-test");
+        chai_1.assert.isNotNull(attr);
+        chai_1.assert.equal(attr.value, "test-value");
+    });
+    it("update property to root element", function () {
+        var root = document.createElement("input");
+        vdom.build(root, function (b) {
+            b.attr("type", "checkbox")
+                .prop("checked", true);
+        });
+        chai_1.assert.isTrue(root.checked);
     });
 });
 describe("vdom childlen tags", function () {
@@ -228,15 +272,54 @@ describe("vdom sub view", function () {
     var root = document.createElement("div");
     it("render view", function () {
         var view = {
-            tagName: "div",
+            tagName: "section",
             render: function (b) {
+                b.cls("test-class");
+                b.attr("data-test", "test");
             }
         };
         vdom.build(root, function (b) { return b.view(view); });
         chai_1.assert.equal(root.children.length, 1);
-        chai_1.assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
-        chai_1.assert.equal(root.children[0].tagName, "DIV");
-        chai_1.assert(root.children[0] === view.element);
+        var child = root.children[0];
+        chai_1.assert.equal(child.nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(child.tagName, "SECTION");
+        chai_1.assert.equal(child.className, "test-class");
+        var attr = child.attributes.getNamedItem("data-test");
+        chai_1.assert.isNotNull(attr);
+        chai_1.assert.equal(attr.value, "test");
+        chai_1.assert(child === view.element);
+    });
+    it("render view and tag", function () {
+        var view = {
+            tagName: "section",
+            render: function (b) {
+                b.cls("test-class");
+                b.attr("data-test", "test");
+            }
+        };
+        vdom.build(root, function (b) {
+            b.attr("data-test-root", "root");
+            b.view(view);
+            b.tag("p").cls("test-class2").end();
+        });
+        chai_1.assert.equal(root.attributes.length, 1);
+        var rootAttr = root.attributes.getNamedItem("data-test-root");
+        chai_1.assert.isNotNull(rootAttr);
+        chai_1.assert.equal(rootAttr.value, "root");
+        chai_1.assert.equal(root.children.length, 2);
+        var child = root.children[0];
+        chai_1.assert.equal(child.nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(child.tagName, "SECTION");
+        chai_1.assert.equal(child.className, "test-class");
+        chai_1.assert.equal(child.attributes.length, 2);
+        var attr = child.attributes.getNamedItem("data-test");
+        chai_1.assert.isNotNull(attr);
+        chai_1.assert.equal(attr.value, "test");
+        chai_1.assert(child === view.element);
+        var child2 = root.children[1];
+        chai_1.assert.equal(child2.nodeType, Node.ELEMENT_NODE);
+        chai_1.assert.equal(child2.tagName, "P");
+        chai_1.assert.equal(child2.className, "test-class2");
     });
     it("render sub view", function () {
         var subview = {

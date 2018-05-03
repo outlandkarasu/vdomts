@@ -7,6 +7,9 @@ type Attributes = { [key:string]: string };
 /// node classList type.
 type Classes = { [key:string]: boolean };
 
+/// node properies type.
+type Properties = { [key:string]: any };
+
 /// building state.
 class State {
     private view_: View;
@@ -14,6 +17,7 @@ class State {
     child: Node | null;
     private attributes_: Attributes | null;
     private classes_: Classes | null;
+    private properties_: Properties | null;
 
     constructor(view: View, element: Element, child: Node | null) {
         this.view_ = view;
@@ -21,6 +25,7 @@ class State {
         this.child = child;
         this.attributes_ = null;
         this.classes_ = null;
+        this.properties_ = null;
     }
 
     attr(name: string, value: string): void {
@@ -35,6 +40,13 @@ class State {
             this.classes_ = (<Classes>{});
         }
         this.classes_[name] = true;
+    }
+
+    prop(name: string, value: any): void {
+        if(!this.properties_) {
+            this.properties_ = (<Properties>{});
+        }
+        this.properties_[name] = value;
     }
 
     text(value: string): void {
@@ -64,17 +76,24 @@ class State {
         this.eventHandlerSet.add(this.view_, type, handler, options);
     }
 
+    end(): void {
+        this.removeRestNodes();
+        this.syncEventHandlers();
+        this.replaceAttributes();
+        this.replaceClasses();
+        this.updateProperties();
+    }
 
-    get eventHandlerSet(): EventHandlerSet | null {
+    private get eventHandlerSet(): EventHandlerSet | null {
         return <EventHandlerSet | null> (<any>this.element).__vdom_eventHandlerSet;
     }
 
-    set eventHandlerSet(eventHandlerSet: EventHandlerSet | null) {
+    private set eventHandlerSet(eventHandlerSet: EventHandlerSet | null) {
         (<any>this.element).__vdom_eventHandlerSet = eventHandlerSet;
     }
 
     /// remove unmatched rest nodes.
-    removeRestNodes(): void {
+    private removeRestNodes(): void {
         const child = this.child;
         if(!child) {
             return;
@@ -88,7 +107,7 @@ class State {
     }
 
     /// replace element attributes.
-    replaceAttributes(): void {
+    private replaceAttributes(): void {
         const element = this.element;
 
         // update exists attributes.
@@ -112,7 +131,7 @@ class State {
     }
 
     /// replace element style classes.
-    replaceClasses(): void {
+    private replaceClasses(): void {
         // update exists classes
         const classList = this.element.classList;
         const newClassList = this.classes_;
@@ -131,7 +150,19 @@ class State {
         }
     }
 
-    syncEventHandlers(): void {
+    private updateProperties(): void {
+        const properties = this.properties_;
+        if(!properties) {
+            return;
+        }
+
+        const element = this.element;
+        for(const k of Object.keys(properties)) {
+            (<any>element)[k] = properties[k];
+        }
+    }
+
+    private syncEventHandlers(): void {
         const eventHandlerSet = this.eventHandlerSet;
         if(eventHandlerSet) {
             eventHandlerSet.syncEventHandlers(this.element);
@@ -179,12 +210,7 @@ class ViewState {
     }
 
     private forceEndTag(): void {
-        const endState = this.state;
-        endState.removeRestNodes();
-        endState.syncEventHandlers();
-        endState.replaceAttributes();
-        endState.replaceClasses();
-
+        this.state.end();
         this.stack_.pop();
 
         const parentState = this.state;
@@ -247,6 +273,15 @@ export class NodeBuilderImpl implements NodeBuilder {
 
     clsIf(name: string, enable: boolean): NodeBuilder {
         return enable ? this.cls(name) : this;
+    }
+
+    prop(name: string, value: any): NodeBuilder {
+        this.state.prop(name, value);
+        return this;
+    }
+
+    propIf(name: string, value: any, enable: boolean): NodeBuilder {
+        return enable ? this.prop(name, value) : this;
     }
 
     text(value: string): NodeBuilder {

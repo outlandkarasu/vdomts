@@ -34,7 +34,7 @@ describe("vdom tags and attributes", () => {
         vdom.build(root, (b) => b.clsIf("test-class", false));
         assert.isEmpty(root.className);
 
-        vdom.build(root, (b) => b.clsIf("test", "test value", true));
+        vdom.build(root, (b) => b.clsIf("test-class", true));
         assert.equal(root.className, "test-class");
     });
 
@@ -83,12 +83,22 @@ describe("vdom tags and attributes", () => {
                  .attr("test", "test value")
                  .attr("test2", "test2 value");
         });
-        let child: Element = root.children[0];
+        const child = root.children[0];
         assert.equal(child.attributes.length, 2);
 
         vdom.build(root, (b) => b.tag("div").attr("test2", "test2 value"));
         assert.equal(child.attributes.length, 1);
         assert.equal(child.attributes.getNamedItem("test2").value, "test2 value");
+    });
+
+    it("set property value", () => {
+        vdom.build(root, (b) => {
+            b.tag("input")
+                 .attr("type", "radio")
+                 .prop("checked", true);
+        });
+        const child = root.children[0];
+        assert.isTrue((<HTMLInputElement>child).checked);
     });
 });
 
@@ -105,6 +115,15 @@ describe("vdom modify root element", () => {
         const attr = root.attributes.getNamedItem("data-test");
         assert.isNotNull(attr);
         assert.equal(attr.value, "test-value");
+    });
+
+    it("update property to root element", () => {
+        const root = document.createElement("input");
+        vdom.build(root, (b) => {
+            b.attr("type", "checkbox")
+             .prop("checked", true);
+        });
+        assert.isTrue(root.checked);
     });
 });
 
