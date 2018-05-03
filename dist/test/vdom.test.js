@@ -96,6 +96,14 @@ describe("vdom modify root element", function () {
         chai_1.assert.isNotNull(attr);
         chai_1.assert.equal(attr.value, "test-value");
     });
+    it("update property to root element", function () {
+        var root = document.createElement("input");
+        vdom.build(root, function (b) {
+            b.attr("type", "checkbox")
+                .prop("checked", true);
+        });
+        chai_1.assert.isTrue(root.checked);
+    });
 });
 describe("vdom childlen tags", function () {
     var root = document.createElement("div");
