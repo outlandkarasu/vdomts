@@ -222,7 +222,7 @@ export class NodeBuilderImpl implements NodeBuilder {
             state.child = newChild;
             child = newChild;
         }
-        this.startNewState(<Element>child);
+        this.viewState.startNewState(<Element>child);
 
         return this;
     }
@@ -287,10 +287,6 @@ export class NodeBuilderImpl implements NodeBuilder {
 
     private get state(): State {
         return this.viewState.state;
-    }
-
-    private startNewState(newRoot: Element): void {
-        this.viewState.startNewState(newRoot);
     }
 
     private startNewViewState(newRoot: Element, view: View): void {
