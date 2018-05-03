@@ -34,7 +34,7 @@ describe("vdom tags and attributes", () => {
         vdom.build(root, (b) => b.clsIf("test-class", false));
         assert.isEmpty(root.className);
 
-        vdom.build(root, (b) => b.clsIf("test", "test value", true));
+        vdom.build(root, (b) => b.clsIf("test-class", true));
         assert.equal(root.className, "test-class");
     });
 
