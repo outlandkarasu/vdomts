@@ -165,17 +165,40 @@ class ViewState {
         this.stack_.push(new State(this.view_, newRoot, newRoot.firstChild));
     }
 
-    popState(): void {
+    endTag(): void {
+        if(this.stack_.length === 1) {
+            return;
+        }
+        this.forceEndTag();
+    }
+
+    endView(): void {
+        while(this.stack_.length > 0) {
+            this.forceEndTag();
+        }
+    }
+
+    private forceEndTag(): void {
+        const endState = this.state;
+        endState.removeRestNodes();
+        endState.syncEventHandlers();
+        endState.replaceAttributes();
+        endState.replaceClasses();
+
         this.stack_.pop();
+
+        const parentState = this.state;
+        if(parentState && parentState.child) {
+            parentState.child = parentState.child.nextSibling;
+        }
     }
 }
 
 export class NodeBuilderImpl implements NodeBuilder {
-    private stack_: ViewState[];
+    private stack_: ViewState[] = [];
 
-    constructor(root: Element, view: View) {
-        this.stack_ = [];
-        this.startNewViewState(root, view);
+    constructor(root: Element, rootView: View) {
+        this.startNewViewState(root, rootView);
     }
 
     get element(): Element {
@@ -246,29 +269,8 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     end(): NodeBuilder {
-        return this.viewState.stateCount < 2 ? this : this.forceEnd();
-    }
-
-    private forceEnd(): NodeBuilder {
-        this.removeRestNodes();
-        this.syncEventHandlers();
-        this.replaceAttributes();
-        this.replaceClasses();
-        this.viewState.popState();
-
-        // move to next element.
-        const state = this.state;
-        if(state && state.child) {
-            state.child = state.child.nextSibling;
-        }
-
+        this.viewState.endTag();
         return this;
-    }
-
-    endAll(): void {
-        while(this.viewState.stateCount > 0) {
-            this.forceEnd();
-        }
     }
 
     build(fn: (b: NodeBuilder) => void): void {
@@ -296,7 +298,7 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     private endViewState(): void {
-        this.endAll();
+        this.viewState.endView();
         this.stack_.pop();
     }
 
@@ -325,11 +327,11 @@ export class NodeBuilderImpl implements NodeBuilder {
  */
 export function build(root: Element, fn: (b: NodeBuilder) => void): void {
     const rootView: View = {
+        element: root,
         get tagName(): string {
             return root.tagName;
         },
         render(b: NodeBuilder): void {
-            // do nothing
         }
     };
     (new NodeBuilderImpl(root, rootView)).build(fn);
