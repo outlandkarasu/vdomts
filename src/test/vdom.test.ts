@@ -116,6 +116,15 @@ describe("vdom modify root element", () => {
         assert.isNotNull(attr);
         assert.equal(attr.value, "test-value");
     });
+
+    it("update property to root element", () => {
+        const root = document.createElement("input");
+        vdom.build(root, (b) => {
+            b.attr("type", "checkbox")
+             .prop("checked", true);
+        });
+        assert.isTrue(root.checked);
+    });
 });
 
 describe("vdom childlen tags", () => {
