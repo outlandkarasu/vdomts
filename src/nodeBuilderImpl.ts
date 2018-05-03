@@ -213,7 +213,7 @@ export class NodeBuilderImpl implements NodeBuilder {
         if(!child
                 || child.nodeType !== Node.ELEMENT_NODE
                 || (<Element>child).tagName !== name.toUpperCase()) {
-            const newChild: Element = document.createElement(name);
+            const newChild = document.createElement(name);
             if(child) {
                 element.insertBefore(newChild, child);
             } else {
