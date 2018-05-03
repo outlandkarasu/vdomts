@@ -165,17 +165,40 @@ class ViewState {
         this.stack_.push(new State(this.view_, newRoot, newRoot.firstChild));
     }
 
-    popState(): void {
+    endTag(): void {
+        if(this.stack_.length === 1) {
+            return;
+        }
+        this.forceEndTag();
+    }
+
+    endView(): void {
+        while(this.stack_.length > 0) {
+            this.forceEndTag();
+        }
+    }
+
+    private forceEndTag(): void {
+        const endState = this.state;
+        endState.removeRestNodes();
+        endState.syncEventHandlers();
+        endState.replaceAttributes();
+        endState.replaceClasses();
+
         this.stack_.pop();
+
+        const parentState = this.state;
+        if(parentState && parentState.child) {
+            parentState.child = parentState.child.nextSibling;
+        }
     }
 }
 
 export class NodeBuilderImpl implements NodeBuilder {
-    private stack_: ViewState[];
+    private stack_: ViewState[] = [];
 
-    constructor(root: Element, view: View) {
-        this.stack_ = [];
-        this.startNewViewState(root, view);
+    constructor(root: Element, rootView: View) {
+        this.startNewViewState(root, rootView);
     }
 
     get element(): Element {
@@ -183,6 +206,12 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     tag(name: string): NodeBuilder {
+        const child = this.moveOrInsertNextTag(name);
+        this.viewState.startNewState(child);
+        return this;
+    }
+
+    private moveOrInsertNextTag(name: string): Element {
         // create a new child element
         const state = this.state;
         const element = state.element;
@@ -190,7 +219,7 @@ export class NodeBuilderImpl implements NodeBuilder {
         if(!child
                 || child.nodeType !== Node.ELEMENT_NODE
                 || (<Element>child).tagName !== name.toUpperCase()) {
-            const newChild: Element = document.createElement(name);
+            const newChild = document.createElement(name);
             if(child) {
                 element.insertBefore(newChild, child);
             } else {
@@ -199,9 +228,7 @@ export class NodeBuilderImpl implements NodeBuilder {
             state.child = newChild;
             child = newChild;
         }
-        this.startNewState(<Element>child);
-
-        return this;
+        return <Element> child;
     }
 
     attr(name: string, value: string): NodeBuilder {
@@ -220,22 +247,20 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     view(v: View): NodeBuilder {
-        try {
-            // start view element tag.
-            this.tag(v.tagName);
-            v.element = this.state.element;
+        // start view element tag.
+        const element = this.moveOrInsertNextTag(v.tagName);
+        v.element = element;
 
-            // start view rendering.
-            try {
-                this.startNewViewState(this.state.element, v);
-                v.render(this);
-            } finally {
-                // end view rendering.
-                this.endViewState();
-            }
+        // start view rendering.
+        try {
+            this.startNewViewState(v.element, v);
+            v.render(this);
         } finally {
-            // close view element tag
-            this.end();
+            // end view rendering.
+            this.endViewState();
+
+            // move to next element.
+            this.state.child = element.nextSibling;
         }
         return this;
     }
@@ -246,29 +271,8 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     end(): NodeBuilder {
-        return this.viewState.stateCount < 2 ? this : this.forceEnd();
-    }
-
-    private forceEnd(): NodeBuilder {
-        this.removeRestNodes();
-        this.syncEventHandlers();
-        this.replaceAttributes();
-        this.replaceClasses();
-        this.viewState.popState();
-
-        // move to next element.
-        const state = this.state;
-        if(state && state.child) {
-            state.child = state.child.nextSibling;
-        }
-
+        this.viewState.endTag();
         return this;
-    }
-
-    endAll(): void {
-        while(this.viewState.stateCount > 0) {
-            this.forceEnd();
-        }
     }
 
     build(fn: (b: NodeBuilder) => void): void {
@@ -287,33 +291,13 @@ export class NodeBuilderImpl implements NodeBuilder {
         return this.viewState.state;
     }
 
-    private startNewState(newRoot: Element): void {
-        this.viewState.startNewState(newRoot);
-    }
-
     private startNewViewState(newRoot: Element, view: View): void {
         this.stack_.push(new ViewState(newRoot, view));
     }
 
     private endViewState(): void {
-        this.endAll();
+        this.viewState.endView();
         this.stack_.pop();
-    }
-
-    private removeRestNodes(): void {
-        this.state.removeRestNodes();
-    }
-
-    private syncEventHandlers(): void {
-        this.state.syncEventHandlers();
-    }
-
-    private replaceAttributes(): void {
-        this.state.replaceAttributes();
-    }
-
-    private replaceClasses(): void {
-        this.state.replaceClasses();
     }
 }
 
@@ -325,11 +309,11 @@ export class NodeBuilderImpl implements NodeBuilder {
  */
 export function build(root: Element, fn: (b: NodeBuilder) => void): void {
     const rootView: View = {
+        element: root,
         get tagName(): string {
             return root.tagName;
         },
         render(b: NodeBuilder): void {
-            // do nothing
         }
     };
     (new NodeBuilderImpl(root, rootView)).build(fn);

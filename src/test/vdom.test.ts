@@ -75,6 +75,22 @@ describe("vdom tags and attributes", () => {
     });
 });
 
+describe("vdom modify root element", () => {
+    it("add class to root element", () => {
+        const root = document.createElement("div");
+        vdom.build(root, (b) => b.cls("test-class"));
+        assert.equal(root.className, "test-class");
+    });
+
+    it("add attribute to root element", () => {
+        const root = document.createElement("div");
+        vdom.build(root, (b) => b.attr("data-test", "test-value"));
+        const attr = root.attributes.getNamedItem("data-test");
+        assert.isNotNull(attr);
+        assert.equal(attr.value, "test-value");
+    });
+});
+
 describe("vdom childlen tags", () => {
     const root: HTMLElement = document.createElement("div");
 
@@ -288,17 +304,69 @@ describe("vdom sub view", () => {
 
     it("render view", () => {
         const view: vdom.View = {
-            tagName: "div",
+            tagName: "section",
             render(b: vdom.NodeBuilder): void {
+                b.cls("test-class");
+                b.attr("data-test", "test");
             }
         };
         vdom.build(root, (b) => b.view(view));
 
+        // element test.
         assert.equal(root.children.length, 1);
-        assert.equal(root.children[0].nodeType, Node.ELEMENT_NODE);
-        assert.equal(root.children[0].tagName, "DIV");
-        assert(root.children[0] === view.element);
+        const child = root.children[0];
+        assert.equal(child.nodeType, Node.ELEMENT_NODE);
+        assert.equal(child.tagName, "SECTION");
+        assert.equal(child.className, "test-class");
+
+        // attributes test.
+        const attr = child.attributes.getNamedItem("data-test");
+        assert.isNotNull(attr);
+        assert.equal(attr.value, "test");
+        assert(child === view.element);
     });
+
+    it("render view and tag", () => {
+        const view: vdom.View = {
+            tagName: "section",
+            render(b: vdom.NodeBuilder): void {
+                b.cls("test-class");
+                b.attr("data-test", "test");
+            }
+        };
+        vdom.build(root, (b) => {
+            b.attr("data-test-root", "root");
+            b.view(view);
+            b.tag("p").cls("test-class2").end();
+        });
+
+        // root element test.
+        assert.equal(root.attributes.length, 1);
+        const rootAttr = root.attributes.getNamedItem("data-test-root");
+        assert.isNotNull(rootAttr);
+        assert.equal(rootAttr.value, "root");
+
+        // element test.
+        assert.equal(root.children.length, 2);
+        const child = root.children[0];
+        assert.equal(child.nodeType, Node.ELEMENT_NODE);
+        assert.equal(child.tagName, "SECTION");
+        assert.equal(child.className, "test-class");
+
+        // attributes test.
+        assert.equal(child.attributes.length, 2); // class + data-test
+        const attr = child.attributes.getNamedItem("data-test");
+        assert.isNotNull(attr);
+        assert.equal(attr.value, "test");
+        assert(child === view.element);
+
+        // tag element test
+        const child2 = root.children[1];
+        assert.equal(child2.nodeType, Node.ELEMENT_NODE);
+        assert.equal(child2.tagName, "P");
+        assert.equal(child2.className, "test-class2");
+    });
+
 
     it("render sub view", () => {
         const subview = {
