@@ -72,6 +72,25 @@ export interface NodeBuilder {
     propIf(name: string, value: any, enable: boolean): NodeBuilder;
 
     /**
+     *  add a style property.
+     *
+     *  @param name style property name.
+     *  @param value style property value.
+     *  @return node builder.
+     */
+    style(name: string, value: any): NodeBuilder;
+
+    /**
+     *  add a style property if enable.
+     *
+     *  @param name style property name.
+     *  @param value style property value.
+     *  @param enable enable flag.
+     *  @return node builder.
+     */
+    styleIf(name: string, value: any, enable: boolean): NodeBuilder;
+
+    /**
      *  add an text node.
      *
      *  @param value text node content.

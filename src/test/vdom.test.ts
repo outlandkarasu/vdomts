@@ -100,6 +100,29 @@ describe("vdom tags and attributes", () => {
         const child = root.children[0];
         assert.isTrue((<HTMLInputElement>child).checked);
     });
+
+    it("set style value", () => {
+        vdom.build(root, (b) => {
+            b.tag("div").style("color", "red").end();
+        });
+        const child = <HTMLElement>root.children[0];
+        assert.equal(child.style.color, "red");
+    });
+
+    it("set and remove style value", () => {
+        vdom.build(root, (b) => {
+            b.tag("div").style("color", "red").end();
+        });
+        const child = <HTMLElement>root.children[0];
+        assert.equal(child.style.color, "red");
+        assert.equal(child.style.backgroundColor, "");
+
+        vdom.build(root, (b) => {
+            b.tag("div").style("background-color", "red").end();
+        });
+        assert.equal(child.style.color, "");
+        assert.equal(child.style.backgroundColor, "red");
+    });
 });
 
 describe("vdom modify root element", () => {
