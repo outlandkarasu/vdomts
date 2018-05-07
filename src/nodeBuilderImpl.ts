@@ -10,6 +10,9 @@ type Classes = { [key:string]: boolean };
 /// node properies type.
 type Properties = { [key:string]: any };
 
+/// css style properies type.
+type Styles = { [key:string]: string };
+
 /// building state.
 class State {
     private view_: View;
@@ -18,6 +21,7 @@ class State {
     private attributes_: Attributes | null;
     private classes_: Classes | null;
     private properties_: Properties | null;
+    private styles_: Styles | null;
 
     constructor(view: View, element: Element, child: Node | null) {
         this.view_ = view;
@@ -26,6 +30,7 @@ class State {
         this.attributes_ = null;
         this.classes_ = null;
         this.properties_ = null;
+        this.styles_ = null;
     }
 
     attr(name: string, value: string): void {
@@ -47,6 +52,13 @@ class State {
             this.properties_ = (<Properties>{});
         }
         this.properties_[name] = value;
+    }
+
+    style(name: string, value: string): void {
+        if(!this.styles_) {
+            this.styles_ = (<Styles>{});
+        }
+        this.styles_[name] = value;
     }
 
     text(value: string): void {
@@ -82,6 +94,7 @@ class State {
         this.replaceAttributes();
         this.replaceClasses();
         this.updateProperties();
+        this.updateStyles();
     }
 
     private get eventHandlerSet(): EventHandlerSet | null {
@@ -159,6 +172,27 @@ class State {
         const element = this.element;
         for(const k of Object.keys(properties)) {
             (<any>element)[k] = properties[k];
+        }
+    }
+
+    private updateStyles(): void {
+        const element = <HTMLElement>this.element;
+        const style = element.style;
+        const newStyles = this.styles_;
+        if(newStyles) {
+            for(const k of Object.keys(newStyles)) {
+                style.setProperty(k, newStyles[k]);
+            }
+        }
+
+        // remove rest styles.
+        for(let i = 0; i < style.length;) {
+            const name = style[i];
+            if(!newStyles || !newStyles.hasOwnProperty(name)) {
+                style.removeProperty(name);
+            } else {
+                ++i;
+            }
         }
     }
 
@@ -285,6 +319,7 @@ export class NodeBuilderImpl implements NodeBuilder {
     }
 
     style(name: string, value: any): NodeBuilder {
+        this.state.style(name, value);
         return this;
     }
 
