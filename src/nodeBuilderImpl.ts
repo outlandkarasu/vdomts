@@ -284,6 +284,14 @@ export class NodeBuilderImpl implements NodeBuilder {
         return enable ? this.prop(name, value) : this;
     }
 
+    style(name: string, value: any): NodeBuilder {
+        return this;
+    }
+
+    styleIf(name: string, value: any, enable: boolean): NodeBuilder {
+        return enable ? this.style(name, value) : this;
+    }
+
     text(value: string): NodeBuilder {
         this.state.text(value);
         return this;
