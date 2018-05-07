@@ -7,6 +7,8 @@ export interface NodeBuilder {
     clsIf(name: string, enable: boolean): NodeBuilder;
     prop(name: string, value: any): NodeBuilder;
     propIf(name: string, value: any, enable: boolean): NodeBuilder;
+    style(name: string, value: any): NodeBuilder;
+    styleIf(name: string, value: any, enable: boolean): NodeBuilder;
     text(value: string): NodeBuilder;
     view(v: View): NodeBuilder;
     event(type: string, handler: EventHandler, options?: boolean | AddEventListenerOptions): NodeBuilder;

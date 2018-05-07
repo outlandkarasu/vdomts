@@ -82,6 +82,26 @@ describe("vdom tags and attributes", function () {
         var child = root.children[0];
         chai_1.assert.isTrue(child.checked);
     });
+    it("set style value", function () {
+        vdom.build(root, function (b) {
+            b.tag("div").style("color", "red").end();
+        });
+        var child = root.children[0];
+        chai_1.assert.equal(child.style.color, "red");
+    });
+    it("set and remove style value", function () {
+        vdom.build(root, function (b) {
+            b.tag("div").style("color", "red").end();
+        });
+        var child = root.children[0];
+        chai_1.assert.equal(child.style.color, "red");
+        chai_1.assert.equal(child.style.backgroundColor, "");
+        vdom.build(root, function (b) {
+            b.tag("div").style("background-color", "red").end();
+        });
+        chai_1.assert.equal(child.style.color, "");
+        chai_1.assert.equal(child.style.backgroundColor, "red");
+    });
 });
 describe("vdom modify root element", function () {
     it("add class to root element", function () {

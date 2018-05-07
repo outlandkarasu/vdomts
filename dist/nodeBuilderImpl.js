@@ -9,6 +9,7 @@ var State = (function () {
         this.attributes_ = null;
         this.classes_ = null;
         this.properties_ = null;
+        this.styles_ = null;
     }
     State.prototype.attr = function (name, value) {
         if (!this.attributes_) {
@@ -27,6 +28,12 @@ var State = (function () {
             this.properties_ = {};
         }
         this.properties_[name] = value;
+    };
+    State.prototype.style = function (name, value) {
+        if (!this.styles_) {
+            this.styles_ = {};
+        }
+        this.styles_[name] = value;
     };
     State.prototype.text = function (value) {
         var child = this.child;
@@ -58,6 +65,7 @@ var State = (function () {
         this.replaceAttributes();
         this.replaceClasses();
         this.updateProperties();
+        this.updateStyles();
     };
     Object.defineProperty(State.prototype, "eventHandlerSet", {
         get: function () {
@@ -125,6 +133,26 @@ var State = (function () {
         for (var _i = 0, _a = Object.keys(properties); _i < _a.length; _i++) {
             var k = _a[_i];
             element[k] = properties[k];
+        }
+    };
+    State.prototype.updateStyles = function () {
+        var element = this.element;
+        var style = element.style;
+        var newStyles = this.styles_;
+        if (newStyles) {
+            for (var _i = 0, _a = Object.keys(newStyles); _i < _a.length; _i++) {
+                var k = _a[_i];
+                style.setProperty(k, newStyles[k]);
+            }
+        }
+        for (var i = 0; i < style.length;) {
+            var name_2 = style[i];
+            if (!newStyles || !newStyles.hasOwnProperty(name_2)) {
+                style.removeProperty(name_2);
+            }
+            else {
+                ++i;
+            }
         }
     };
     State.prototype.syncEventHandlers = function () {
@@ -242,6 +270,13 @@ var NodeBuilderImpl = (function () {
     };
     NodeBuilderImpl.prototype.propIf = function (name, value, enable) {
         return enable ? this.prop(name, value) : this;
+    };
+    NodeBuilderImpl.prototype.style = function (name, value) {
+        this.state.style(name, value);
+        return this;
+    };
+    NodeBuilderImpl.prototype.styleIf = function (name, value, enable) {
+        return enable ? this.style(name, value) : this;
     };
     NodeBuilderImpl.prototype.text = function (value) {
         this.state.text(value);
