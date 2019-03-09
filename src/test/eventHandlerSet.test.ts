@@ -42,7 +42,7 @@ describe("EventHandlerEntry", () => {
     it("add and remove event handlers", () => {
         const fn1 = () => {};
         const fn2 = () => {};
-        const target = new EventTarget();
+        const target = document.createElement("div");
         const set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
@@ -83,7 +83,7 @@ describe("EventHandlerEntry", () => {
             fn2Called = true;
         };
 
-        const target = new EventTarget();
+        const target = document.createElement("div");
         const set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);

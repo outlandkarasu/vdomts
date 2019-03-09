@@ -27,7 +27,8 @@ describe("vdom tags and attributes", () => {
 
         vdom.build(root, (b) => b.attrIf("test", "test value", true));
         assert.equal(root.attributes.length, 1);
-        assert.equal(root.attributes.getNamedItem("test").value, "test value");
+        const attr = root.attributes.getNamedItem("test");
+        assert.equal(attr && attr.value, "test value");
     });
 
     it("append class with flag", () => {
@@ -46,7 +47,8 @@ describe("vdom tags and attributes", () => {
         const child: Element = root.children[0];
         assert.equal(child.tagName, "DIV");
         assert.equal(child.attributes.length, 1);
-        assert.equal(child.attributes.getNamedItem("test").value, "test value");
+        const attr = child.attributes.getNamedItem("test");
+        assert.equal(attr && attr.value, "test value");
     });
 
     it("append tag attribute and child", () => {
@@ -65,7 +67,8 @@ describe("vdom tags and attributes", () => {
         const child2: Element = child.children[0];
         assert.equal(child2.tagName, "DIV");
         assert.equal(child2.attributes.length, 1);
-        assert.equal(child2.attributes.getNamedItem("test").value, "child");
+        const attr = child2.attributes.getNamedItem("test");
+        assert.equal(attr && attr.value, "child");
     });
 
     it("remove an attribute", () => {
@@ -88,7 +91,8 @@ describe("vdom tags and attributes", () => {
 
         vdom.build(root, (b) => b.tag("div").attr("test2", "test2 value"));
         assert.equal(child.attributes.length, 1);
-        assert.equal(child.attributes.getNamedItem("test2").value, "test2 value");
+        const attr = child.attributes.getNamedItem("test2");
+        assert.equal(attr && attr.value, "test2 value");
     });
 
     it("set property value", () => {
@@ -136,8 +140,7 @@ describe("vdom modify root element", () => {
         const root = document.createElement("div");
         vdom.build(root, (b) => b.attr("data-test", "test-value"));
         const attr = root.attributes.getNamedItem("data-test");
-        assert.isNotNull(attr);
-        assert.equal(attr.value, "test-value");
+        assert.equal(attr && attr.value, "test-value");
     });
 
     it("update property to root element", () => {
@@ -380,8 +383,7 @@ describe("vdom sub view", () => {
 
         // attributes test.
         const attr = child.attributes.getNamedItem("data-test");
-        assert.isNotNull(attr);
-        assert.equal(attr.value, "test");
+        assert.equal(attr && attr.value, "test");
         assert(child === view.element);
     });
 
@@ -402,8 +404,7 @@ describe("vdom sub view", () => {
         // root element test.
         assert.equal(root.attributes.length, 1);
         const rootAttr = root.attributes.getNamedItem("data-test-root");
-        assert.isNotNull(rootAttr);
-        assert.equal(rootAttr.value, "root");
+        assert.equal(rootAttr && rootAttr.value, "root");
 
         // element test.
         assert.equal(root.children.length, 2);
@@ -415,8 +416,7 @@ describe("vdom sub view", () => {
         // attributes test.
         assert.equal(child.attributes.length, 2); // class + data-test
         const attr = child.attributes.getNamedItem("data-test");
-        assert.isNotNull(attr);
-        assert.equal(attr.value, "test");
+        assert.equal(attr && attr.value, "test");
         assert(child === view.element);
 
         // tag element test

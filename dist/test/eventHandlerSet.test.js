@@ -33,7 +33,7 @@ describe("EventHandlerEntry", function () {
     it("add and remove event handlers", function () {
         var fn1 = function () { };
         var fn2 = function () { };
-        var target = new EventTarget();
+        var target = document.createElement("div");
         var set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
@@ -66,7 +66,7 @@ describe("EventHandlerEntry", function () {
             chai_1.assert(this === view);
             fn2Called = true;
         };
-        var target = new EventTarget();
+        var target = document.createElement("div");
         var set = new ev.EventHandlerSet();
         set.add(view, "click", fn1, false);
         set.add(view, "dblclick", fn1, false);
