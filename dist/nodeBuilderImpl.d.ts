@@ -4,7 +4,7 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     constructor(root: Element, rootView: View);
     readonly element: Element;
     tag(name: string): NodeBuilder;
-    private moveOrInsertNextTag(name);
+    private moveOrInsertNextTag;
     attr(name: string, value: string): NodeBuilder;
     attrIf(name: string, value: string, enable: boolean): NodeBuilder;
     cls(name: string): NodeBuilder;
@@ -20,8 +20,8 @@ export declare class NodeBuilderImpl implements NodeBuilder {
     build(fn: (b: NodeBuilder) => void): void;
     private readonly viewState;
     private readonly state;
-    private startNewViewState(newRoot, view);
-    private endViewState();
+    private startNewViewState;
+    private endViewState;
 }
 export declare function build(root: Element, fn: (b: NodeBuilder) => void): void;
 export declare function rebuild(view: View): void;

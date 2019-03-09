@@ -24,5 +24,5 @@ export declare class EventHandlerSet {
     contains(view: View, type: string, handler: EventHandler, options: EventOptions): boolean;
     add(view: View, type: string, handler: EventHandler, options: EventOptions): void;
     syncEventHandlers(target: EventTarget): void;
-    private find(view, type, handler, options);
+    private find;
 }
